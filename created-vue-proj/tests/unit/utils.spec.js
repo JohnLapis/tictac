@@ -1,13 +1,25 @@
-const setupUtils = require('../../src/utils.js')
-// const setupUtils = require('src/utils.js')
+const setupUtils = require("../../src/utils.js")
 
 function makeSquare(x, y, symbol) {
   return {pos: {x, y}, symbol}
 }
 
-fdescribe("getLine with length 3", function() {
-  // const {getLine} = setupUtils({requiredLineLength: 3})
-  const {getLine} = setupUtils({requiredLineLength: 3}).getLineV3
+function convertGridIntoArray(grid) {
+  let array = []
+
+  for (let i = 0; i < grid.length; i++) {
+    for (let j = 0; j < grid.length; j++) {
+      array.push({
+        pos: {x: j, y: i},
+        symbol: grid[i][j],
+      })
+    }
+  }
+  return array
+}
+
+describe("getLine with length 3", function() {
+  const {getLine} = setupUtils({requiredLineLength: 3, gridDimension: 3})
 
   it.each([
     [
@@ -19,8 +31,8 @@ fdescribe("getLine with length 3", function() {
     ],
     [
       [["X", "O", "O"],
-       ["O", "O", "O"],
-       ["O", "O", "X"]],
+       [" ", "O", "O"],
+       [" ", "O", "X"]],
       "O",
       [makeSquare(1, 0, "O"), makeSquare(1, 1, "O"), makeSquare(1, 2, "O")],
     ],
@@ -45,30 +57,20 @@ fdescribe("getLine with length 3", function() {
       "O",
       false,
     ],
-  ])("getLine", function(squares, symbol, expected) {
-    let formattedSquares = []
-
-    for (let i = 0; i < squares.length; i++) {
-      for (let j = 0; j < squares.length; j++) {
-        formattedSquares.push({
-          pos: {x: j, y: i},
-          symbol: squares[i][j],
-        })
-      }
-    }
-
-    expect(getLine(formattedSquares, symbol)).toEqual(expected)
+  ])("getLine", function(grid, symbol, expected) {
+    const squares = convertGridIntoArray(grid)
+    expect(getLine(squares, symbol)).toEqual(expected)
   })
 })
 
 describe("getLine with length 4", function() {
-  const {getLine} = setupUtils({requiredLineLength: 4})
+  const {getLine} = setupUtils({requiredLineLength: 4, gridDimension: 4})
 
   it.each([
     [
       [["X", "O", "O", "O"],
        [" ", "X", "O", "X"],
-       [" ", "O", " ", "X"],
+       [" ", "O", "X", "X"],
        ["O", "O", "O", "X"]],
       "O",
       [
@@ -78,18 +80,21 @@ describe("getLine with length 4", function() {
         makeSquare(0, 3, "O"),
       ],
     ],
-  ])("getLine", function(squares, symbol, expected) {
-    let formattedSquares = []
-
-    for (let i = 0; i < squares.length; i++) {
-      for (let j = 0; j < squares.length; j++) {
-        formattedSquares.push({
-          pos: {x: j, y: i},
-          symbol: squares[i][j],
-        })
-      }
-    }
-
-    expect(getLine(formattedSquares, symbol)).toEqual(expected)
+    [
+      [["X", "O", "O", "O"],
+       [" ", "X", "O", "X"],
+       [" ", "O", "X", "X"],
+       ["O", "O", "O", "X"]],
+      "X",
+      [
+        makeSquare(0, 0, "X"),
+        makeSquare(1, 1, "X"),
+        makeSquare(2, 2, "X"),
+        makeSquare(3, 3, "X"),
+      ],
+    ],
+  ])("getLine", function(grid, symbol, expected) {
+    const squares = convertGridIntoArray(grid)
+    expect(getLine(squares, symbol)).toEqual(expected)
   })
 })

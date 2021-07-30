@@ -3,8 +3,7 @@
   <!-- is th id required -->
   <Grid
     id="#grid"
-    numberOfRows="numberOfRows"
-    numberOfCols="numberOfCols"
+    gridDimension="gridDimension"
     clickHandler="clickHandlerWithBetterName"
   >
   <img alt="Vue logo" src="./assets/logo.png">
@@ -71,8 +70,7 @@ export default {
   name: "App",
   data() {
     return {
-      numberOfRows: 3,
-      numberOfCols: 3,
+      gridDimension: 3,
       userSymbol: null,
       machineSymbol: null,
     }
