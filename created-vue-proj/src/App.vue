@@ -3,10 +3,10 @@
   <!-- is th id required -->
   <Grid
     id="#grid"
-    gridDimension="gridDimension"
-    clickHandler="clickHandlerWithBetterName"
+    gridDimension="3"
+    clickHandler="{{ clickHandlerWithBetterName }}"
   >
-  <img alt="Vue logo" src="./assets/logo.png">
+  </Grid>
   <nav class="navbar navbar-light bg-light">
     <div class="container-fluid">
       <a class="navbar-brand" href="#">
@@ -18,6 +18,7 @@
 </template>
 
 <script>
+import Grid from './components/Grid.vue'
 const { getLine } = require('./utils')({ lineRequiredLength: 3 })
 
 const squares = Array.from(document.querySelectorAll('.square'))
@@ -25,21 +26,14 @@ function randint (ending) {
   return Math.floor(Math.random() * ending)
 }
 
-function doMachinePlay () {
-  const emptySquares = squares.filter(s => s.innerText === '')
-  const chosenSquare = emptySquares[randint(emptySquares.length)]
-  chosenSquare.innerText = vm.$data.machineSymbol
-}
-
 function getRowsOfSquares () {
   return Array.from(document.querySelectorAll('#grid > .row'))
-    .map((row, j) =>
-      Array.from(row.querySelectorAll('.square'))
-        .map((square, i) => ({
-          pos: { x: i, y: j },
-          symbol: square.innerText
-        })))
-  // .map(square => square.innerText))
+              .map((row, j) =>
+                Array.from(row.querySelectorAll('.square'))
+                     .map((square, i) => ({
+                       pos: { x: i, y: j },
+                       symbol: square.innerText
+              })))
 }
 
 function getSquareHTMLElement (square) {
@@ -49,12 +43,26 @@ function getSquareHTMLElement (square) {
 
 function showPlayerWon (line) {
   alert('alguém ganhou')
-  line.forEach(square => getSquareHTMLElement(square).classList.add('.blue'))
+  line.forEach(square => getSquareHTMLElement(square).classList.add('blue'))
 }
 
 function incorrectPlay (square) {
-  showSmallMsg('Esse quadrado não está vazio.')
-  getSquareHTMLElement(square).classList.add('.red')
+  // this should be a small message
+  alert('Esse quadrado não está vazio.')
+  squareHTMLElement.classList.add('red')
+}
+
+function makeUserPlay(square) {
+  square.innerText = vm.$data.userSymbol
+  updateSquare(JSON.parse(square.dataset.pos), vm.$data.userSymbol)
+}
+
+function makeRandomPlay() {
+  const emptySquares = squares.filter(s => s.innerText === '')
+  const chosenSquare = emptySquares[randint(emptySquares.length)]
+  chosenSquare.innerText = vm.$data.machineSymbol
+  const [x, y] = chosenSquare.dataset.pos.split('-')
+  updateSquare({x, y}, vm.$data.machineSymbol)
 }
 
 function clickHandlerWithBetterName (event) {
@@ -63,23 +71,42 @@ function clickHandlerWithBetterName (event) {
   if (!vm.$data.gameHasStarted) return
   if (square.innerText !== '') return incorrectPlay(square)
 
-  element.innerText = vm.$data.userSymbol
-  game
-  line = getLine(getRowsOfSquares(), vm.$data.userSymbol)
+  makeUserPlay(square)
+  let line = getLine(vm.$data.squares, vm.$data.userSymbol)
   if (line) showPlayerWon(line)
 
   makeRandomPlay()
-  line = getLine()
+  line = getLine(vm.$data.squares, vm.$data.machineSymbol)
   if (line) showPlayerWon(line)
+}
+
+function getIdFromPos({x, y}) {
+  return [x, y].join('-')
 }
 
 export default {
   name: 'App',
+  components: {
+    Grid,
+  },
   data () {
+    const gridDimension = 3
     return {
-      gridDimension: 3,
+      gridDimension,
       userSymbol: null,
-      machineSymbol: null
+      machineSymbol: null,
+      updateSquare(pos, symbol) {
+        this.squares[getIdFromPos(pos)].symbol = symbol
+      },
+      squares: Object.fromEntries(
+        new Array(gridDimension**2).fill().map((_, i) => {
+          const pos = {
+            x: i % gridDimension,
+            y: Math.floor(i / gridDimension),
+          }
+          return [getIdFromPos(pos), { symbol: '', pos }]
+        })
+      ),
     }
   },
   methods: {
