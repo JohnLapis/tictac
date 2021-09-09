@@ -4,7 +4,7 @@
   <Grid
     id="#grid"
     gridDimension="3"
-    clickHandler="{{ clickHandlerWithBetterName }}"
+    v-on:click="clickHandlerWithBetterName"
   >
   </Grid>
   <nav class="navbar navbar-light bg-light">
@@ -24,60 +24,6 @@ const { getLine } = require('./utils')({ lineRequiredLength: 3 })
 const squares = Array.from(document.querySelectorAll('.square'))
 function randint (ending) {
   return Math.floor(Math.random() * ending)
-}
-
-function getRowsOfSquares () {
-  return Array.from(document.querySelectorAll('#grid > .row'))
-              .map((row, j) =>
-                Array.from(row.querySelectorAll('.square'))
-                     .map((square, i) => ({
-                       pos: { x: i, y: j },
-                       symbol: square.innerText
-              })))
-}
-
-function getSquareHTMLElement (square) {
-  return document.querySelector(`#grid .row:nth-child(${square.pos.y + 1})`)
-                 .querySelector(`.square:nth-child(${square.pos.x + 1})`)
-}
-
-function showPlayerWon (line) {
-  alert('alguém ganhou')
-  line.forEach(square => getSquareHTMLElement(square).classList.add('blue'))
-}
-
-function incorrectPlay (square) {
-  // this should be a small message
-  alert('Esse quadrado não está vazio.')
-  squareHTMLElement.classList.add('red')
-}
-
-function makeUserPlay(square) {
-  square.innerText = vm.$data.userSymbol
-  updateSquare(JSON.parse(square.dataset.pos), vm.$data.userSymbol)
-}
-
-function makeRandomPlay() {
-  const emptySquares = squares.filter(s => s.innerText === '')
-  const chosenSquare = emptySquares[randint(emptySquares.length)]
-  chosenSquare.innerText = vm.$data.machineSymbol
-  const [x, y] = chosenSquare.dataset.pos.split('-')
-  updateSquare({x, y}, vm.$data.machineSymbol)
-}
-
-function clickHandlerWithBetterName (event) {
-  const square = event.target
-
-  if (!vm.$data.gameHasStarted) return
-  if (square.innerText !== '') return incorrectPlay(square)
-
-  makeUserPlay(square)
-  let line = getLine(vm.$data.squares, vm.$data.userSymbol)
-  if (line) showPlayerWon(line)
-
-  makeRandomPlay()
-  line = getLine(vm.$data.squares, vm.$data.machineSymbol)
-  if (line) showPlayerWon(line)
 }
 
 function getIdFromPos({x, y}) {
@@ -120,6 +66,57 @@ export default {
       } else {
         throw Error('Os únicos símbolos válidos são "X" e "O".')
       }
+    },
+    getRowsOfSquares () {
+      return Array.from(document.querySelectorAll('#grid > .row'))
+                  .map((row, j) =>
+                    Array.from(row.querySelectorAll('.square'))
+                         .map((square, i) => ({
+                           pos: { x: i, y: j },
+                           symbol: square.innerText
+                  })))
+    },
+    getSquareHTMLElement (square) {
+      return document.querySelector(`#grid .row:nth-child(${square.pos.y + 1})`)
+                     .querySelector(`.square:nth-child(${square.pos.x + 1})`)
+    },
+    showPlayerWon (line) {
+      alert('alguém ganhou')
+      line.forEach(square => getSquareHTMLElement(square).classList.add('blue'))
+    },
+    incorrectPlay (square) {
+      // this should be a small message
+      alert('Esse quadrado não está vazio.')
+      squareHTMLElement.classList.add('red')
+    },
+    makeUserPlay (square) {
+      square.innerText = vm.$data.userSymbol
+      updateSquare(JSON.parse(square.dataset.pos), vm.$data.userSymbol)
+    },
+    makeRandomPlay () {
+      const emptySquares = squares.filter(s => s.innerText === '')
+      const chosenSquare = emptySquares[randint(emptySquares.length)]
+      chosenSquare.innerText = vm.$data.machineSymbol
+      const [x, y] = chosenSquare.dataset.pos.split('-')
+      updateSquare({x, y}, vm.$data.machineSymbol)
+    },
+    clickHandlerWithBetterName (event) {
+      alert("ee")
+      window.ee = event
+    },
+    _clickHandlerWithBetterName (event) {
+      const square = event.target
+
+      if (!vm.$data.gameHasStarted) return
+      if (square.innerText !== '') return incorrectPlay(square)
+
+      makeUserPlay(square)
+      let line = getLine(vm.$data.squares, vm.$data.userSymbol)
+      if (line) showPlayerWon(line)
+
+      makeRandomPlay()
+      line = getLine(vm.$data.squares, vm.$data.machineSymbol)
+      if (line) showPlayerWon(line)
     }
   }
 }
