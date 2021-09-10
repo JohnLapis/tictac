@@ -5,6 +5,7 @@ module.exports = ({ requiredLineLength, gridDimension }) => {
       y: Math.abs(square1.pos.y - square2.pos.y)
     }
   }
+
   function compareDistance (dist1, dist2) {
     return dist1.x === dist2.x && dist1.y === dist2.y
   }
