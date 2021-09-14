@@ -38,17 +38,6 @@ export default {
       document.querySelector("#machineSymbol").readOnly = true
       this.gameHasStarted = true
     },
-    setSymbols (str) {
-      if (str === 'X') {
-        this.userSymbol = 'X'
-        this.machineSymbol = 'O'
-      } else if (str === 'O') {
-        this.userSymbol = 'O'
-        this.machineSymbol = 'X'
-      } else {
-        throw Error('Os únicos símbolos válidos são "X" e "O".')
-      }
-    },
   }
 }
 </script>
