@@ -25,11 +25,6 @@ function randint (ending) {
   return Math.floor(Math.random() * ending)
 }
 
-function incorrectPlay (square) {
-  // this should be a small message
-  alert('Esse quadrado não está vazio.')
-}
-
 function getIdFromPos({x, y}) {
   return [x, y].join('-')
 }
@@ -61,7 +56,6 @@ export default {
   methods: {
     clickListener (square) {
       if (!vm.$data.gameBeingPlayed) return
-      if (square.symbol !== '') return incorrectPlay(square)
 
       this.doUserPlay(square)
       let line = this.getLine(JSON.parse(JSON.stringify(this.squares)),
