@@ -25,20 +25,9 @@ function randint (ending) {
   return Math.floor(Math.random() * ending)
 }
 
-function getRowsOfSquares () {
-  return Array.from(document.querySelectorAll('#grid > .row'))
-              .map((row, j) =>
-                Array.from(row.querySelectorAll('.square'))
-                     .map((square, i) => ({
-                       pos: { x: i, y: j },
-                       symbol: square.innerText
-              })))
-}
-
 function incorrectPlay (square) {
   // this should be a small message
   alert('Esse quadrado não está vazio.')
-  //squareHTMLElement.classList.add('red')
 }
 
 function getIdFromPos({x, y}) {
@@ -71,15 +60,15 @@ export default {
   },
   methods: {
     clickListener (square) {
-      if (!vm.$data.gameHasStarted) return
+      if (!vm.$data.gameBeingPlayed) return
       if (square.symbol !== '') return incorrectPlay(square)
 
-      this.makeUserPlay(square)
+      this.doUserPlay(square)
       let line = this.getLine(JSON.parse(JSON.stringify(this.squares)),
                               vm.$data.userSymbol)
       if (line) return this.runVictoryEvent(line, vm.$data.userSymbol)
 
-      this.makeRandomPlay()
+      this.doMachinePlay()
       line = this.getLine(JSON.parse(JSON.stringify(this.squares)),
                           vm.$data.machineSymbol)
       if (line) this.runVictoryEvent(line, vm.$data.machineSymbol)
@@ -90,10 +79,10 @@ export default {
         {pos, symbol: chosenSymbol} : {pos, symbol}
       )
     },
-    makeUserPlay (square) {
+    doUserPlay (square) {
       this.updateSquare(square.pos, vm.$data.userSymbol)
     },
-    makeRandomPlay () {
+    doMachinePlay () {
       const emptySquares = this.squares.filter(s => s.symbol === '')
       const randomSquare = emptySquares[randint(emptySquares.length)]
       if (randomSquare) this.updateSquare(randomSquare.pos, vm.$data.machineSymbol)
@@ -107,6 +96,8 @@ export default {
       line.forEach(square => this.getSquareHTMLElement(square).classList.add('blue'))
       document.querySelector("#userSymbol").readOnly = false
       document.querySelector("#machineSymbol").readOnly = false
+
+      vm.$data.gameBeingPlayed = false
     },
   }
 }

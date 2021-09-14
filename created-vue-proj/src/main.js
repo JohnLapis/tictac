@@ -1,7 +1,6 @@
 import { createApp } from 'vue'
 import App from './App.vue'
 
-const sth = createApp(App)
-const vm = sth.mount('#app')
-window.sth = sth
+const app = createApp(App)
+const vm = app.mount('#app')
 window.vm = vm

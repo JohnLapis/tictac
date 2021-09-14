@@ -29,14 +29,14 @@ export default {
       gridDimension: 3,
       userSymbol: 'X',
       machineSymbol: 'O',
-      gameHasStarted: false,
+      gameBeingPlayed: false,
     }
   },
   methods: {
     beginGame () {
       document.querySelector("#userSymbol").readOnly = true
       document.querySelector("#machineSymbol").readOnly = true
-      this.gameHasStarted = true
+      this.gameBeingPlayed = true
     },
   }
 }
