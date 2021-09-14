@@ -31,15 +31,15 @@ describe('getLine with length 3', function () {
     ],
     [
       [['X', 'O', 'O'],
-       ['', 'O', 'O'],
-       ['', 'O', 'X']],
+        ['', 'O', 'O'],
+        ['', 'O', 'X']],
       'O',
       [makeSquare(1, 0, 'O'), makeSquare(1, 1, 'O'), makeSquare(1, 2, 'O')]
     ],
     [
       [['X', 'X', 'X'],
-       ['O', '', 'O'],
-       ['', 'O', 'X']],
+        ['O', '', 'O'],
+        ['', 'O', 'X']],
       'X',
       [makeSquare(0, 0, 'X'), makeSquare(1, 0, 'X'), makeSquare(2, 0, 'X')]
     ],
