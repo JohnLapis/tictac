@@ -35,17 +35,6 @@ function getRowsOfSquares () {
               })))
 }
 
-function getSquareHTMLElement (square) {
-  return document.querySelector(`#grid .row:nth-child(${square.pos.y + 1})`)
-                 .querySelector(`.square:nth-child(${square.pos.x + 1})`)
-}
-
-function runVictoryEvent (line) {
-  document.querySelector("#playAgain").hidden = false
-  alert('alguém ganhou')
-  line.forEach(square => getSquareHTMLElement(square).classList.add('blue'))
-}
-
 function incorrectPlay (square) {
   // this should be a small message
   alert('Esse quadrado não está vazio.')
@@ -81,6 +70,20 @@ export default {
     }
   },
   methods: {
+    clickListener (square) {
+      if (!vm.$data.gameHasStarted) return
+      if (square.symbol !== '') return incorrectPlay(square)
+
+      this.makeUserPlay(square)
+      let line = this.getLine(JSON.parse(JSON.stringify(this.squares)),
+                              vm.$data.userSymbol)
+      if (line) return this.runVictoryEvent(line, vm.$data.userSymbol)
+
+      this.makeRandomPlay()
+      line = this.getLine(JSON.parse(JSON.stringify(this.squares)),
+                          vm.$data.machineSymbol)
+      if (line) this.runVictoryEvent(line, vm.$data.machineSymbol)
+    },
     updateSquare(chosenPos, chosenSymbol) {
       this.squares = this.squares.map(({pos, symbol}) =>
         positionsAreEqual(pos, chosenPos) ?
@@ -95,18 +98,16 @@ export default {
       const randomSquare = emptySquares[randint(emptySquares.length)]
       if (randomSquare) this.updateSquare(randomSquare.pos, vm.$data.machineSymbol)
     },
-    clickListener (square) {
-      if (!vm.$data.gameHasStarted) return
-      if (square.symbol !== '') return incorrectPlay(square)
-
-      this.makeUserPlay(square)
-      let line = this.getLine(this.squares, vm.$data.userSymbol)
-      if (line) runVictoryEvent(line)
-
-      this.makeRandomPlay()
-      line = this.getLine(this.squares, vm.$data.machineSymbol)
-      if (line) runVictoryEvent(line)
-    }
+    getSquareHTMLElement ({pos}) {
+      return document.querySelectorAll('.square')[this.gridDimension * pos.y + pos.x]
+    },
+    runVictoryEvent (line, symbol) {
+      document.querySelector("#playAgain").hidden = false
+      alert(symbol === vm.$data.userSymbol ? 'voce ganhou' : 'a maquina ganhou')
+      line.forEach(square => this.getSquareHTMLElement(square).classList.add('blue'))
+      document.querySelector("#userSymbol").readOnly = false
+      document.querySelector("#machineSymbol").readOnly = false
+    },
   }
 }
 </script>

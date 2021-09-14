@@ -13,7 +13,7 @@
   <input id="machineSymbol" v-model="machineSymbol" maxlength="1">
   Grid dimension: <input v-model="gridDimension" disabled>
   <button v-on:click="beginGame">Play</button>
-  <Grid id="#grid" gridDimension="3"></Grid>
+  <Grid id="#grid" v-bind:gridDimension="this.gridDimension"></Grid>
 </template>
 
 <script>
