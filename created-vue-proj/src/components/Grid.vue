@@ -29,19 +29,19 @@ function getIdFromPos({x, y}) {
   return [x, y].join('-')
 }
 
+function makeGridSquares (dim) {
+  return new Array(dim ** 2).fill().map((_, i) => ({
+    symbol: '',
+    pos: {x: i % dim, y: Math.floor(i / dim)}
+  }))
+}
+
 export default {
   name: 'Grid',
   props: {
-    gridDimension: Number,
+    gridDimension: {type: Number, required: true},
   },
   data () {
-    function makeGridSquares (dim) {
-      return new Array(dim ** 2).fill().map((_, i) => ({
-        symbol: '',
-        pos: {x: i % dim, y: Math.floor(i / dim)}
-      }))
-    }
-
     return {
       squares: makeGridSquares(this.gridDimension),
       resetGrid () {
