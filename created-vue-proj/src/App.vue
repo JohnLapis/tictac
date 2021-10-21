@@ -12,8 +12,12 @@
   Enter machine's symbol:
   <input id="machineSymbol" v-model="machineSymbol" maxlength="1">
   Grid dimension: <input v-model="gridDimension" disabled>
-  <button v-on:click="beginGame">Play</button>
-  <Grid id="#grid" v-bind:gridDimension="this.gridDimension"></Grid>
+  <Grid
+    id="#grid"
+    v-bind:gridDimension="this.gridDimension"
+    v-on:gameStarted="afterGameStarted"
+    v-on:gameEnded="afterGameEnded"
+  ></Grid>
 </template>
 
 <script>
@@ -29,14 +33,19 @@ export default {
       gridDimension: 3,
       userSymbol: 'X',
       machineSymbol: 'O',
-      gameBeingPlayed: false,
+      gameIsBeingPlayed: false,
     }
   },
   methods: {
-    beginGame () {
+    afterGameStarted () {
       document.querySelector("#userSymbol").readOnly = true
       document.querySelector("#machineSymbol").readOnly = true
-      this.gameBeingPlayed = true
+      this.gameIsBeingPlayed = true
+    },
+    afterGameEnded () {
+      document.querySelector("#userSymbol").readOnly = false
+      document.querySelector("#machineSymbol").readOnly = false
+      this.gameIsBeingPlayed = false
     },
   }
 }

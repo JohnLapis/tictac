@@ -1,4 +1,5 @@
 <template>
+  <button v-on:click="$emit('gameStarted', this)">Play</button>
   <div class="container">
     <div class="row">
       <div
@@ -13,7 +14,6 @@
     </div>
   </div>
 
-  <button id="playAgain" v-on:click="resetGrid" hidden>Play Again</button>
 </template>
 
 <script>
@@ -44,9 +44,6 @@ export default {
   data () {
     return {
       squares: makeGridSquares(this.gridDimension),
-      resetGrid () {
-        this.squares = makeGridSquares(this.gridDimension)
-      },
       getLine: require('../utils')({
         requiredLineLength: this.gridDimension,
         gridDimension: this.gridDimension,
@@ -55,17 +52,17 @@ export default {
   },
   methods: {
     clickListener (square) {
-      if (!vm.$data.gameBeingPlayed) return
+      if (!vm.$data.gameIsBeingPlayed) return
 
       this.doUserPlay(square)
       let line = this.getLine(JSON.parse(JSON.stringify(this.squares)),
                               vm.$data.userSymbol)
-      if (line) return this.runVictoryEvent(line, vm.$data.userSymbol)
+      if (line) return this.$emit('gameEnded', (line, vm.$data.userSymbol))
 
       this.doMachinePlay()
       line = this.getLine(JSON.parse(JSON.stringify(this.squares)),
                           vm.$data.machineSymbol)
-      if (line) this.runVictoryEvent(line, vm.$data.machineSymbol)
+      if (line) this.$emit('gameEnded', (line, vm.$data.machineSymbol))
     },
     updateSquare(chosenPos, chosenSymbol) {
       this.squares = this.squares.map(({pos, symbol}) =>
@@ -84,14 +81,18 @@ export default {
     getSquareHTMLElement ({pos}) {
       return document.querySelectorAll('.square')[this.gridDimension * pos.y + pos.x]
     },
-    runVictoryEvent (line, symbol) {
-      document.querySelector("#playAgain").hidden = false
+    resetGrid () {
+      this.squares = makeGridSquares(this.gridDimension)
+    },
+  },
+  emits: {
+    gameEnded (line, symbol) {
       alert(symbol === vm.$data.userSymbol ? 'voce ganhou' : 'a maquina ganhou')
+      console.log(line)
       line.forEach(square => this.getSquareHTMLElement(square).classList.add('blue'))
-      document.querySelector("#userSymbol").readOnly = false
-      document.querySelector("#machineSymbol").readOnly = false
-
-      vm.$data.gameBeingPlayed = false
+    },
+    gameStarted (_this) {
+      _this.resetGrid()
     },
   }
 }
