@@ -1,4 +1,9 @@
 <template>
+  Enter your symbol: <input id="userSymbol" v-model="userSymbol" maxlength="1">
+  Enter machine's symbol:
+  <input id="machineSymbol" v-model="machineSymbol" maxlength="1">
+  Grid dimension: <input v-model="gridDimension" disabled>
+
   <button v-on:click="$emit('gameStarted', this)">Play</button>
   <div class="container">
     <div class="row">
@@ -13,7 +18,6 @@
       </div>
     </div>
   </div>
-
 </template>
 
 <script>
@@ -25,7 +29,7 @@ function randint (ending) {
   return Math.floor(Math.random() * ending)
 }
 
-function getIdFromPos({x, y}) {
+function getIdFromPos ({x, y}) {
   return [x, y].join('-')
 }
 
@@ -38,45 +42,49 @@ function makeGridSquares (dim) {
 
 export default {
   name: 'Grid',
-  props: {
-    gridDimension: {type: Number, required: true},
-  },
   data () {
+    const gridDimension = 3
     return {
-      squares: makeGridSquares(this.gridDimension),
+      gridDimension,
+      userSymbol: 'X',
+      machineSymbol: 'O',
+      gameIsBeingPlayed: false,
+      squares: makeGridSquares(gridDimension),
       getLine: require('../utils')({
-        requiredLineLength: this.gridDimension,
-        gridDimension: this.gridDimension,
+        requiredLineLength: gridDimension,
+        gridDimension: gridDimension,
       }).getLine,
     }
   },
   methods: {
     clickListener (square) {
-      if (!vm.$data.gameIsBeingPlayed) return
+      if (!this.gameIsBeingPlayed) return
 
       this.doUserPlay(square)
-      let line = this.getLine(JSON.parse(JSON.stringify(this.squares)),
-                              vm.$data.userSymbol)
-      if (line) return this.$emit('gameEnded', (line, vm.$data.userSymbol))
+      let line = this.getLine(
+        JSON.parse(JSON.stringify(this.squares)), this.userSymbol
+      )
+      if (line) return this.$emit('gameEnded', this, line, this.userSymbol)
 
       this.doMachinePlay()
-      line = this.getLine(JSON.parse(JSON.stringify(this.squares)),
-                          vm.$data.machineSymbol)
-      if (line) this.$emit('gameEnded', (line, vm.$data.machineSymbol))
+      line = this.getLine(
+        JSON.parse(JSON.stringify(this.squares)), this.machineSymbol
+      )
+      if (line) this.$emit('gameEnded', this, line, this.machineSymbol)
     },
-    updateSquare(chosenPos, chosenSymbol) {
+    updateSquare (chosenPos, chosenSymbol) {
       this.squares = this.squares.map(({pos, symbol}) =>
         positionsAreEqual(pos, chosenPos) ?
         {pos, symbol: chosenSymbol} : {pos, symbol}
       )
     },
     doUserPlay (square) {
-      this.updateSquare(square.pos, vm.$data.userSymbol)
+      this.updateSquare(square.pos, this.userSymbol)
     },
     doMachinePlay () {
       const emptySquares = this.squares.filter(s => s.symbol === '')
       const randomSquare = emptySquares[randint(emptySquares.length)]
-      if (randomSquare) this.updateSquare(randomSquare.pos, vm.$data.machineSymbol)
+      if (randomSquare) this.updateSquare(randomSquare.pos, this.machineSymbol)
     },
     getSquareHTMLElement ({pos}) {
       return document.querySelectorAll('.square')[this.gridDimension * pos.y + pos.x]
@@ -86,13 +94,19 @@ export default {
     },
   },
   emits: {
-    gameEnded (line, symbol) {
-      alert(symbol === vm.$data.userSymbol ? 'voce ganhou' : 'a maquina ganhou')
-      console.log(line)
-      line.forEach(square => this.getSquareHTMLElement(square).classList.add('blue'))
-    },
     gameStarted (_this) {
+      document.querySelector("#userSymbol").readOnly = true
+      document.querySelector("#machineSymbol").readOnly = true
+      _this.gameIsBeingPlayed = true
       _this.resetGrid()
+    },
+    gameEnded (_this, line, symbol) {
+      alert(symbol === _this.userSymbol ? 'voce ganhou' : 'a maquina ganhou')
+      line.forEach(square => _this.getSquareHTMLElement(square).classList.add('blue'))
+
+      document.querySelector("#userSymbol").readOnly = false
+      document.querySelector("#machineSymbol").readOnly = false
+      _this.gameIsBeingPlayed = false
     },
   }
 }

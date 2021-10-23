@@ -8,46 +8,17 @@
       </a>
     </div>
   </nav>
-  Enter your symbol: <input id="userSymbol" v-model="userSymbol" maxlength="1">
-  Enter machine's symbol:
-  <input id="machineSymbol" v-model="machineSymbol" maxlength="1">
-  Grid dimension: <input v-model="gridDimension" disabled>
-  <Grid
-    id="#grid"
-    v-bind:gridDimension="this.gridDimension"
-    v-on:gameStarted="afterGameStarted"
-    v-on:gameEnded="afterGameEnded"
-  ></Grid>
+  <Game id="#grid"></Game>
 </template>
 
 <script>
-import Grid from './components/Grid.vue'
+import Game from './components/Game.vue'
 
 export default {
   name: 'App',
   components: {
-    Grid,
+    Game,
   },
-  data () {
-    return {
-      gridDimension: 3,
-      userSymbol: 'X',
-      machineSymbol: 'O',
-      gameIsBeingPlayed: false,
-    }
-  },
-  methods: {
-    afterGameStarted () {
-      document.querySelector("#userSymbol").readOnly = true
-      document.querySelector("#machineSymbol").readOnly = true
-      this.gameIsBeingPlayed = true
-    },
-    afterGameEnded () {
-      document.querySelector("#userSymbol").readOnly = false
-      document.querySelector("#machineSymbol").readOnly = false
-      this.gameIsBeingPlayed = false
-    },
-  }
 }
 </script>
 
