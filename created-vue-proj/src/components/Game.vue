@@ -50,6 +50,7 @@ export default {
       machineSymbol: 'O',
       gameIsBeingPlayed: false,
       squares: makeGridSquares(gridDimension),
+      squareElements: [],
       getLine: require('../utils')({
         requiredLineLength: gridDimension,
         gridDimension: gridDimension,
@@ -86,8 +87,8 @@ export default {
       const randomSquare = emptySquares[randint(emptySquares.length)]
       if (randomSquare) this.updateSquare(randomSquare.pos, this.machineSymbol)
     },
-    getSquareHTMLElement ({pos}) {
-      return document.querySelectorAll('.square')[this.gridDimension * pos.y + pos.x]
+    getSquareElement ({pos}) {
+      return this.squareElements[this.gridDimension * pos.y + pos.x]
     },
     resetGrid () {
       this.squares = makeGridSquares(this.gridDimension)
@@ -99,10 +100,11 @@ export default {
       document.querySelector("#machineSymbol").readOnly = true
       _this.gameIsBeingPlayed = true
       _this.resetGrid()
+      _this.squareElements = document.querySelectorAll('.square')
     },
     gameEnded (_this, line, symbol) {
       alert(symbol === _this.userSymbol ? 'voce ganhou' : 'a maquina ganhou')
-      line.forEach(square => _this.getSquareHTMLElement(square).classList.add('blue'))
+      line.forEach(square => _this.getSquareElement(square).classList.add('blue'))
 
       document.querySelector("#userSymbol").readOnly = false
       document.querySelector("#machineSymbol").readOnly = false
