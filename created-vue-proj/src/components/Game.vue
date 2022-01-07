@@ -34,14 +34,10 @@ function randint (ending) {
   return Math.floor(Math.random() * ending)
 }
 
-function getIdFromPos ({x, y}) {
-  return [x, y].join('-')
-}
-
 function makeGridSquares (dim) {
   return new Array(dim ** 2).fill().map((_, i) => ({
     symbol: '',
-    pos: {x: i % dim, y: Math.floor(i / dim)}
+    pos: { x: i % dim, y: Math.floor(i / dim) }
   }))
 }
 
@@ -96,9 +92,9 @@ export default {
       if (line) this.$emit('gameEnded', this, line, this.machineSymbol)
     },
     updateSquare (chosenPos, chosenSymbol) {
-      this.squares = this.squares.map(({pos, symbol}) =>
-        positionsAreEqual(pos, chosenPos) ?
-        {pos, symbol: chosenSymbol} : {pos, symbol}
+      this.squares = this.squares.map(({ pos, symbol }) =>
+        positionsAreEqual(pos, chosenPos)
+          ? { pos, symbol: chosenSymbol } : { pos, symbol }
       )
     },
     doUserPlay (square) {
@@ -109,17 +105,17 @@ export default {
       const randomSquare = emptySquares[randint(emptySquares.length)]
       if (randomSquare) this.updateSquare(randomSquare.pos, this.machineSymbol)
     },
-    getSquareElement ({pos}) {
+    getSquareElement ({ pos }) {
       return this.squareElements[this.gridDimension * pos.y + pos.x]
     },
     resetGrid () {
       this.squares = makeGridSquares(this.gridDimension)
-    },
+    }
   },
   emits: {
     gameStarted (_this) {
-      document.querySelector("#userSymbol").readOnly = true
-      document.querySelector("#machineSymbol").readOnly = true
+      document.querySelector('#userSymbol').readOnly = true
+      document.querySelector('#machineSymbol').readOnly = true
       _this.gameIsBeingPlayed = true
       _this.resetGrid()
       _this.squareElements = document.querySelectorAll('.square')
@@ -128,10 +124,10 @@ export default {
       alert(symbol === _this.userSymbol ? 'voce ganhou' : 'a maquina ganhou')
       line.forEach(square => _this.getSquareElement(square).classList.add('blue'))
 
-      document.querySelector("#userSymbol").readOnly = false
-      document.querySelector("#machineSymbol").readOnly = false
+      document.querySelector('#userSymbol').readOnly = false
+      document.querySelector('#machineSymbol').readOnly = false
       _this.gameIsBeingPlayed = false
-    },
+    }
   }
 }
 </script>
