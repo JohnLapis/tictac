@@ -5,22 +5,27 @@
   Grid dimension: <input v-model="gridDimension" disabled>
 
   <button v-on:click="$emit('gameStarted', this)">Play</button>
-  <div class="container">
-    <div class="row">
-      <div
-        class="col-4"
-        v-for="square in squares"
-        v-on:click="clickListener(square); /* updateSquare(square.pos, $userSymbol) */"
-      >
-        <div class="square">
-          {{ square.symbol }}
-        </div>
-      </div>
-    </div>
-  </div>
+  <grid-layout v-model:layout="layout"
+    :style="{width: (gridDimension <= 8 ? 10 * gridDimension : 80) + '%'}"
+    :col-num="2 * gridDimension"
+    :row-Height="50"
+    :is-draggable="false"
+    :is-resizable="false"
+  >
+    <grid-item v-for="item in layout"
+      :x="item.x"
+      :y="item.y"
+      :w="item.w"
+      :h="item.h"
+    >
+      <span class="symbol"></span>
+    </grid-item>
+  </grid-layout>
 </template>
 
 <script>
+import { GridLayout, GridItem } from 'vue-grid-layout'
+
 function positionsAreEqual (pos1, pos2) {
   return pos1.x === pos2.x && pos1.y === pos2.y
 }
@@ -40,10 +45,19 @@ function makeGridSquares (dim) {
   }))
 }
 
+function range (n) {
+  return [...Array(n).keys()]
+}
+
 export default {
+  components: {
+    GridLayout,
+    GridItem
+  },
   name: 'Grid',
   data () {
     const gridDimension = 3
+    const squareSideLength = 2
     return {
       gridDimension,
       userSymbol: 'X',
@@ -53,8 +67,16 @@ export default {
       squareElements: [],
       getLine: require('../utils')({
         requiredLineLength: gridDimension,
-        gridDimension: gridDimension,
+        gridDimension: gridDimension
       }).getLine,
+      layout: range(gridDimension).map(x => range(gridDimension).map(y => ({
+        x: x * squareSideLength,
+        y: y * squareSideLength,
+        w: squareSideLength,
+        h: squareSideLength,
+        i: `${x}-${y}`,
+        symbol: '',
+      }))).flat()
     }
   },
   methods: {
@@ -115,9 +137,26 @@ export default {
 </script>
 
 <style>
-.square {
-  border: solid;
-  height: 30px;
-  width:  30px;
+.vue-grid-layout {
+  background: #000;
+  flex: 0 0 auto;
+  margin: 1.5rem auto;
+  clip-path: inset(15px 15px 15px 15px)
+}
+@media only screen and (max-width: 768px) {
+  .vue-grid-layout {
+    width: 100% !important;
+  }
+}
+.vue-grid-item:not(.vue-grid-placeholder) {
+  background: #fff;
+  width: 50px;
+  display: flex;
+  align-items: center;
+  text-align: center;
+}
+.vue-grid-item .symbol {
+  width: 100%;
+  font-size: 33px;
 }
 </style>
