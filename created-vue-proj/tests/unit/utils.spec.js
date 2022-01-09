@@ -1,7 +1,7 @@
-const setupUtils = require('../../src/utils.js')
+const _getLine = require('../../src/utils.js').getLine
 
-function makeSquare (x, y, symbol) {
-  return { pos: { x, y }, symbol }
+function makeSquare (X, Y, symbol) {
+  return { X, Y, symbol }
 }
 
 function convertGridIntoArray (grid) {
@@ -10,7 +10,8 @@ function convertGridIntoArray (grid) {
   for (let i = 0; i < grid.length; i++) {
     for (let j = 0; j < grid.length; j++) {
       array.push({
-        pos: { x: j, y: i },
+        X: j,
+        Y: i,
         symbol: grid[i][j]
       })
     }
@@ -19,7 +20,7 @@ function convertGridIntoArray (grid) {
 }
 
 describe('getLine with length 3', function () {
-  const { getLine } = setupUtils({ requiredLineLength: 3, gridDimension: 3 })
+  const getLine = (...args) => _getLine(3, 3, ...args)
 
   it.each([
     [
@@ -78,7 +79,7 @@ describe('getLine with length 3', function () {
 })
 
 describe('getLine with length 4', function () {
-  const { getLine } = setupUtils({ requiredLineLength: 4, gridDimension: 4 })
+  const getLine = (...args) => _getLine(4, 4, ...args)
 
   it.each([
     [

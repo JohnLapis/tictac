@@ -12,23 +12,22 @@
     :is-draggable="false"
     :is-resizable="false"
   >
-    <grid-item v-for="item in layout"
-      :x="item.x"
-      :y="item.y"
-      :w="item.w"
-      :h="item.h"
+    <grid-item v-for="square in layout"
+      v-on:click="clickListener(square)"
+      :x="square.x"
+      :y="square.y"
+      :w="square.w"
+      :h="square.h"
+      :i="square.i"
+      :key="square.i"
     >
-      <span class="symbol"></span>
+      <span class="symbol">{{square.symbol}}</span>
     </grid-item>
   </grid-layout>
 </template>
 
 <script>
 import { GridLayout, GridItem } from 'vue-grid-layout'
-
-function positionsAreEqual (pos1, pos2) {
-  return pos1.x === pos2.x && pos1.y === pos2.y
-}
 
 function randint (ending) {
   return Math.floor(Math.random() * ending)
@@ -59,6 +58,7 @@ export default {
       userSymbol: 'X',
       machineSymbol: 'O',
       gameIsBeingPlayed: false,
+      numberOfRemainingSquares: gridDimension ** 2,
       squares: makeGridSquares(gridDimension),
       squareElements: [],
       getLine: require('../utils')({
@@ -66,8 +66,12 @@ export default {
         gridDimension: gridDimension
       }).getLine,
       layout: range(gridDimension).map(x => range(gridDimension).map(y => ({
+        // "x", "y" are used for visual position of squares
         x: x * squareSideLength,
         y: y * squareSideLength,
+        // "X", "Y" are used for algorithms
+        X: x,
+        Y: y,
         w: squareSideLength,
         h: squareSideLength,
         i: `${x}-${y}`,
@@ -79,35 +83,42 @@ export default {
     clickListener (square) {
       if (!this.gameIsBeingPlayed) return
 
+      if (!this.numberOfRemainingSquares) {
+        this.gameIsBeingPlayed = false
+        return
+      }
       this.doUserPlay(square)
-      let line = this.getLine(
-        // To copy the squares
-        JSON.parse(JSON.stringify(this.squares)), this.userSymbol
-      )
+      let line = this.getLine(this.layout, this.userSymbol)
       if (line) return this.$emit('gameEnded', this, line, this.userSymbol)
 
+      if (!this.numberOfRemainingSquares) {
+        this.gameIsBeingPlayed = false
+        return
+      }
       this.doMachinePlay()
-      line = this.getLine(
-        JSON.parse(JSON.stringify(this.squares)), this.machineSymbol
-      )
+      line = this.getLine(this.layout, this.machineSymbol)
       if (line) this.$emit('gameEnded', this, line, this.machineSymbol)
     },
     updateSquare (chosenPos, chosenSymbol) {
-      this.squares = this.squares.map(({ pos, symbol }) =>
-        positionsAreEqual(pos, chosenPos)
-          ? { pos, symbol: chosenSymbol } : { pos, symbol }
+      const index = this.layout.findIndex(
+        ({ X, Y }) => X === chosenPos.X && Y === chosenPos.Y
       )
+      this.layout[index].symbol = chosenSymbol
     },
-    doUserPlay (square) {
-      this.updateSquare(square.pos, this.userSymbol)
+    doUserPlay ({ X, Y }) {
+      this.updateSquare({ X, Y }, this.userSymbol)
+      this.numberOfRemainingSquares -= 1
     },
     doMachinePlay () {
-      const emptySquares = this.squares.filter(s => s.symbol === '')
-      const randomSquare = emptySquares[randint(emptySquares.length)]
-      if (randomSquare) this.updateSquare(randomSquare.pos, this.machineSymbol)
+      let randomSquare
+      do {
+        randomSquare = this.layout[randint(this.layout.length)]
+      } while (randomSquare.symbol !== '')
+      this.updateSquare({ X: randomSquare.X, Y: randomSquare.Y }, this.machineSymbol)
+      this.numberOfRemainingSquares -= 1
     },
-    getSquareElement ({ pos }) {
-      return this.squareElements[this.gridDimension * pos.y + pos.x]
+    getSquareElement ({ X, Y }) {
+      return this.squareElements[this.gridDimension * Y + X]
     },
     resetGrid () {
       this.squares = makeGridSquares(this.gridDimension)
