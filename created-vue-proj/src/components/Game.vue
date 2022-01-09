@@ -81,6 +81,7 @@ export default {
 
       this.doUserPlay(square)
       let line = this.getLine(
+        // To copy the squares
         JSON.parse(JSON.stringify(this.squares)), this.userSymbol
       )
       if (line) return this.$emit('gameEnded', this, line, this.userSymbol)
