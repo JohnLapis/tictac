@@ -8,7 +8,7 @@
       </a>
     </div>
   </nav>
-  <Game id="#grid"></Game>
+  <Game />
 </template>
 
 <script>
