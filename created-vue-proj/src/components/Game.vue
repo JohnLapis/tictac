@@ -1,10 +1,30 @@
 <template>
-  Enter your symbol: <input id="userSymbol" v-model="userSymbol" maxlength="1">
-  Enter machine's symbol:
-  <input id="machineSymbol" v-model="machineSymbol" maxlength="1">
-  Grid dimension: <input v-model="gridDimension" disabled>
-
-  <button v-on:click="$emit('gameStarted', this)">Play</button>
+  <div class="container">
+    <div class="row">
+      <div class="col-4">
+        Enter your symbol:
+        <input id="userSymbol" maxlength="1"
+          v-model="userSymbol"
+          :style="{width: '20px'}"
+        >
+      </div>
+      <div class="col-4">
+        Enter machine's symbol:
+        <input id="machineSymbol" maxlength="1"
+          v-model="machineSymbol"
+          :style="{width: '20px'}"
+        >
+      </div>
+      <div class="col-4">
+        Grid dimension:
+        <input v-model="gridDimension" disabled :style="{width: '40px'}" >
+      </div>
+    </div>
+  </div>
+  <button class="btn btn-light"
+    :style="{margin: '0.5rem 0 -1.25rem 0'}"
+    v-on:click="$emit('gameStarted', this)"
+  >Start game</button>
   <grid-layout v-model:layout="layout"
     :style="{width: (gridDimension <= 8 ? 10 * gridDimension : 80) + '%'}"
     :col-num="2 * gridDimension"
@@ -14,6 +34,7 @@
   >
     <grid-item v-for="square in layout"
       v-on:click="clickListener(square)"
+      :style="square.style"
       :x="square.x"
       :y="square.y"
       :w="square.w"
@@ -59,8 +80,6 @@ export default {
       machineSymbol: 'O',
       gameIsBeingPlayed: false,
       numberOfRemainingSquares: gridDimension ** 2,
-      squares: makeGridSquares(gridDimension),
-      squareElements: [],
       getLine: require('../utils')({
         requiredLineLength: gridDimension,
         gridDimension: gridDimension
@@ -76,6 +95,7 @@ export default {
         h: squareSideLength,
         i: `${x}-${y}`,
         symbol: '',
+        style: {}
       }))).flat()
     }
   },
@@ -83,18 +103,12 @@ export default {
     clickListener (square) {
       if (!this.gameIsBeingPlayed) return
 
-      if (!this.numberOfRemainingSquares) {
-        this.gameIsBeingPlayed = false
-        return
-      }
+      if (!this.numberOfRemainingSquares) return this.$emit('gameEnded', this)
       this.doUserPlay(square)
       let line = this.getLine(this.layout, this.userSymbol)
       if (line) return this.$emit('gameEnded', this, line, this.userSymbol)
 
-      if (!this.numberOfRemainingSquares) {
-        this.gameIsBeingPlayed = false
-        return
-      }
+      if (!this.numberOfRemainingSquares) return this.$emit('gameEnded', this)
       this.doMachinePlay()
       line = this.getLine(this.layout, this.machineSymbol)
       if (line) this.$emit('gameEnded', this, line, this.machineSymbol)
@@ -117,34 +131,45 @@ export default {
       this.updateSquare({ X: randomSquare.X, Y: randomSquare.Y }, this.machineSymbol)
       this.numberOfRemainingSquares -= 1
     },
-    getSquareElement ({ X, Y }) {
-      return this.squareElements[this.gridDimension * Y + X]
-    },
-    resetGrid () {
-      this.squares = makeGridSquares(this.gridDimension)
-    }
   },
   emits: {
     gameStarted (_this) {
       document.querySelector('#userSymbol').readOnly = true
       document.querySelector('#machineSymbol').readOnly = true
       _this.gameIsBeingPlayed = true
-      _this.resetGrid()
-      _this.squareElements = document.querySelectorAll('.square')
+      _this.numberOfRemainingSquares = _this.gridDimension ** 2
+      for (const square of _this.layout) {
+        square.symbol = ''
+        square.style.background = '#ffffff'
+      }
     },
     gameEnded (_this, line, symbol) {
-      alert(symbol === _this.userSymbol ? 'voce ganhou' : 'a maquina ganhou')
-      line.forEach(square => _this.getSquareElement(square).classList.add('blue'))
-
       document.querySelector('#userSymbol').readOnly = false
       document.querySelector('#machineSymbol').readOnly = false
       _this.gameIsBeingPlayed = false
+      if (!Array.isArray(line) && line !== undefined) alert(JSON.stringify(lin))
+      if (line) {
+        alert(symbol === _this.userSymbol ? 'voce ganhou' : 'a maquina ganhou')
+        for (const square of line) {
+          square.style.background = '#c4faf8'
+        }
+      } else {
+        alert('velha')
+        for (const square of _this.layout) {
+          square.style.background = '#ff9999'
+        }
+      }
     }
   }
 }
 </script>
 
 <style>
+html, #app {
+  background-color: #ffbebc;
+  width: 100%;
+  height: 100%;
+}
 .vue-grid-layout {
   background: #000;
   flex: 0 0 auto;
