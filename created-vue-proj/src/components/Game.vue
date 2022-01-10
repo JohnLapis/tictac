@@ -3,21 +3,15 @@
     <div class="row">
       <div class="col-4">
         Enter your symbol:
-        <input id="userSymbol" maxlength="1"
-          v-model="userSymbol"
-          :style="{width: '20px'}"
-        >
+        <input maxlength="1" v-model="userSymbol" :style="{width: '20px'}">
       </div>
       <div class="col-4">
         Enter machine's symbol:
-        <input id="machineSymbol" maxlength="1"
-          v-model="machineSymbol"
-          :style="{width: '20px'}"
-        >
+        <input maxlength="1" v-model="machineSymbol" :style="{width: '20px'}">
       </div>
       <div class="col-4">
         Grid dimension:
-        <input id="gridDimension" v-model="gridDimension" :style="{width: '30px'}" >
+        <input v-model="gridDimension" :style="{width: '30px'}">
       </div>
     </div>
   </div>
@@ -89,12 +83,28 @@ export default {
   },
   name: 'Grid',
   watch: {
+    userSymbol () {
+      if (this.gameIsBeingPlayed) {
+        this.resetGrid()
+        this.gameIsBeingPlayed = false
+      }
+    },
+    machineSymbol () {
+      if (this.gameIsBeingPlayed) {
+        this.resetGrid()
+        this.gameIsBeingPlayed = false
+      }
+    },
     gridDimension (value) {
       value = Number(value)
       if (isNaN(value) || value < 0) return
       this.numberOfRemainingSquares = value ** 2
       this.getLine = (...args) => getLine(value, value, ...args)
       this.layout = makeLayout(value, this.squareSize)
+      if (this.gameIsBeingPlayed) {
+        this.resetGrid()
+        this.gameIsBeingPlayed = false
+      }
     }
   },
   data () {
@@ -143,23 +153,20 @@ export default {
       this.updateSquare({ X: randomSquare.X, Y: randomSquare.Y }, this.machineSymbol)
       this.numberOfRemainingSquares -= 1
     },
-  },
-  emits: {
-    gameStarted (_this) {
-      document.querySelector('#userSymbol').readOnly = true
-      document.querySelector('#machineSymbol').readOnly = true
-      document.querySelector('#gridDimension').readOnly = true
-      _this.gameIsBeingPlayed = true
-      _this.numberOfRemainingSquares = _this.gridDimension ** 2
-      for (const square of _this.layout) {
+    resetGrid () {
+      for (const square of this.layout) {
         square.symbol = ''
         square.style.background = '#ffffff'
       }
     },
+  },
+  emits: {
+    gameStarted (_this) {
+      _this.gameIsBeingPlayed = true
+      _this.numberOfRemainingSquares = _this.gridDimension ** 2
+      _this.resetGrid()
+    },
     gameEnded (_this, line, symbol) {
-      document.querySelector('#userSymbol').readOnly = false
-      document.querySelector('#machineSymbol').readOnly = false
-      document.querySelector('#gridDimension').readOnly = false
       _this.gameIsBeingPlayed = false
       console.log(line)
       if (!Array.isArray(line) && line !== undefined) alert(JSON.stringify(line))
