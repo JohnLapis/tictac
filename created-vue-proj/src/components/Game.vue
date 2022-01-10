@@ -120,10 +120,9 @@ export default {
   },
   methods: {
     clickListener (square) {
-      if (!this.gameIsBeingPlayed) return
+      if (!this.gameIsBeingPlayed || square.symbol !== '') return
 
       if (!this.numberOfRemainingSquares) return this.gameEnded()
-      if (square.symbol !== '') return
       this.doUserPlay(square)
       let line = this.getLine(this.layout, this.userSymbol)
       if (line) return this.gameEnded(line, this.userSymbol)
