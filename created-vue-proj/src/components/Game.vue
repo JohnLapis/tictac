@@ -11,7 +11,11 @@
       </div>
       <div class="col-4">
         Grid dimension:
-        <input v-model="gridDimension" :style="{width: '30px'}">
+        <input
+          v-model.number="gridDimension"
+          v-on:keydown="isNavOrInt($event)"
+          :style="{width: '40px'}"
+        >
       </div>
     </div>
   </div>
@@ -90,7 +94,7 @@ export default {
     },
     gridDimension (value) {
       value = Number(value)
-      if (isNaN(value) || value < 0) return
+      if (isNaN(value) || value < 0 || value > 20) return
       this.numberOfRemainingSquares = value ** 2
       this.getLine = (...args) => getLine(value, value, ...args)
       this.layout = makeLayout(value, this.squareSize)
@@ -154,6 +158,7 @@ export default {
       }
     },
     gameStarted () {
+      if (this.gridDimension === 0) return this.gameEnded()
       this.gameIsBeingPlayed = true
       this.numberOfRemainingSquares = this.gridDimension ** 2
       this.resetGrid()
@@ -175,6 +180,21 @@ export default {
         }
       }
     },
+    isNavOrInt (event) {
+      const allowedKeys = [
+        'ArrowLeft',
+        'ArrowRight',
+        'ArrowUp',
+        'ArrowDown',
+        'Delete',
+        'Backspace',
+        'PageUp',
+        'PageDown',
+        'Home',
+        'End'
+      ]
+      if (!allowedKeys.includes(event.key) && isNaN(event.key)) event.preventDefault()
+    }
   }
 }
 </script>
