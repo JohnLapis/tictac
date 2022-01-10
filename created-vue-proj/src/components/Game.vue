@@ -126,6 +126,7 @@ export default {
       if (!this.gameIsBeingPlayed) return
 
       if (!this.numberOfRemainingSquares) return this.$emit('gameEnded', this)
+      if (square.symbol !== '') return
       this.doUserPlay(square)
       let line = this.getLine(this.layout, this.userSymbol)
       if (line) return this.$emit('gameEnded', this, line, this.userSymbol)
