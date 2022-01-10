@@ -17,7 +17,7 @@
   </div>
   <button class="btn btn-light"
     :style="{margin: '0.5rem 0 -1.25rem 0'}"
-    v-on:click="$emit('gameStarted', this)"
+    v-on:click="gameStarted"
   >Start game</button>
   <grid-layout v-model:layout="layout"
     :style="{width: `${gridDimension <= 8 ? 10 * gridDimension : 80}%`}"
@@ -160,13 +160,14 @@ export default {
         square.style.background = '#ffffff'
       }
     },
+    gameStarted () {
+      this.gameIsBeingPlayed = true
+      this.numberOfRemainingSquares = this.gridDimension ** 2
+      this.resetGrid()
+      if (randint(2)) this.doMachinePlay()
+    },
   },
   emits: {
-    gameStarted (_this) {
-      _this.gameIsBeingPlayed = true
-      _this.numberOfRemainingSquares = _this.gridDimension ** 2
-      _this.resetGrid()
-    },
     gameEnded (_this, line, symbol) {
       _this.gameIsBeingPlayed = false
       console.log(line)
