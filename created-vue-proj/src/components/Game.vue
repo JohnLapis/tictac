@@ -125,16 +125,16 @@ export default {
     clickListener (square) {
       if (!this.gameIsBeingPlayed) return
 
-      if (!this.numberOfRemainingSquares) return this.$emit('gameEnded', this)
+      if (!this.numberOfRemainingSquares) return this.gameEnded()
       if (square.symbol !== '') return
       this.doUserPlay(square)
       let line = this.getLine(this.layout, this.userSymbol)
-      if (line) return this.$emit('gameEnded', this, line, this.userSymbol)
+      if (line) return this.gameEnded(line, this.userSymbol)
 
-      if (!this.numberOfRemainingSquares) return this.$emit('gameEnded', this)
+      if (!this.numberOfRemainingSquares) return this.gameEnded()
       this.doMachinePlay()
       line = this.getLine(this.layout, this.machineSymbol)
-      if (line) this.$emit('gameEnded', this, line, this.machineSymbol)
+      if (line) this.gameEnded(line, this.machineSymbol)
     },
     updateSquare (chosenPos, chosenSymbol) {
       const index = this.layout.findIndex(
@@ -166,24 +166,22 @@ export default {
       this.resetGrid()
       if (randint(2)) this.doMachinePlay()
     },
-  },
-  emits: {
-    gameEnded (_this, line, symbol) {
-      _this.gameIsBeingPlayed = false
+    gameEnded (line, symbol) {
+      this.gameIsBeingPlayed = false
       console.log(line)
       if (!Array.isArray(line) && line !== undefined) alert(JSON.stringify(line))
       if (line) {
-        alert(symbol === _this.userSymbol ? 'voce ganhou' : 'a maquina ganhou')
+        alert(symbol === this.userSymbol ? 'voce ganhou' : 'a maquina ganhou')
         for (const square of line) {
           square.style.background = '#c4faf8'
         }
       } else {
         alert('velha')
-        for (const square of _this.layout) {
+        for (const square of this.layout) {
           square.style.background = '#ff9999'
         }
       }
-    }
+    },
   }
 }
 </script>
