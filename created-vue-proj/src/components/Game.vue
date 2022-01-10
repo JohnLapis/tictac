@@ -49,13 +49,6 @@ function randint (ending) {
   return Math.floor(Math.random() * ending)
 }
 
-function makeGridSquares (dim) {
-  return new Array(dim ** 2).fill().map((_, i) => ({
-    symbol: '',
-    pos: { x: i % dim, y: Math.floor(i / dim) }
-  }))
-}
-
 function range (n) {
   return [...Array(n).keys()]
 }
