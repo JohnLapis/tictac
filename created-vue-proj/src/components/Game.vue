@@ -17,7 +17,7 @@
       </div>
       <div class="col-4">
         Grid dimension:
-        <input v-model="gridDimension" disabled :style="{width: '40px'}" >
+        <input id="gridDimension" v-model="gridDimension" :style="{width: '30px'}" >
       </div>
     </div>
   </div>
@@ -49,6 +49,7 @@
 
 <script>
 import { GridLayout, GridItem } from 'vue-grid-layout'
+import { getLine } from '../utils'
 
 function randint (ending) {
   return Math.floor(Math.random() * ending)
@@ -65,38 +66,49 @@ function range (n) {
   return [...Array(n).keys()]
 }
 
+function makeLayout (gridDimension, squareSize) {
+  return range(gridDimension).map(x => range(gridDimension).map(y => ({
+    // "x", "y" are used for visual position of squares
+    x: x * squareSize,
+    y: y * squareSize,
+    // "X", "Y" are used for algorithms
+    X: x,
+    Y: y,
+    w: squareSize,
+    h: squareSize,
+    i: `${x}-${y}`,
+    symbol: '',
+    style: {}
+  }))).flat()
+}
+
 export default {
   components: {
     GridLayout,
     GridItem
   },
   name: 'Grid',
+  watch: {
+    gridDimension (value) {
+      value = Number(value)
+      if (isNaN(value) || value < 0) return
+      this.numberOfRemainingSquares = value ** 2
+      this.getLine = (...args) => getLine(value, value, ...args)
+      this.layout = makeLayout(value, this.squareSize)
+    }
+  },
   data () {
     const gridDimension = 3
-    const squareSideLength = 2
+    const squareSize = 2
     return {
       gridDimension,
       userSymbol: 'X',
       machineSymbol: 'O',
       gameIsBeingPlayed: false,
+      squareSize,
       numberOfRemainingSquares: gridDimension ** 2,
-      getLine: require('../utils')({
-        requiredLineLength: gridDimension,
-        gridDimension: gridDimension
-      }).getLine,
-      layout: range(gridDimension).map(x => range(gridDimension).map(y => ({
-        // "x", "y" are used for visual position of squares
-        x: x * squareSideLength,
-        y: y * squareSideLength,
-        // "X", "Y" are used for algorithms
-        X: x,
-        Y: y,
-        w: squareSideLength,
-        h: squareSideLength,
-        i: `${x}-${y}`,
-        symbol: '',
-        style: {}
-      }))).flat()
+      getLine: (...args) => getLine(gridDimension, gridDimension, ...args),
+      layout: makeLayout(gridDimension, squareSize)
     }
   },
   methods: {
@@ -136,6 +148,7 @@ export default {
     gameStarted (_this) {
       document.querySelector('#userSymbol').readOnly = true
       document.querySelector('#machineSymbol').readOnly = true
+      document.querySelector('#gridDimension').readOnly = true
       _this.gameIsBeingPlayed = true
       _this.numberOfRemainingSquares = _this.gridDimension ** 2
       for (const square of _this.layout) {
@@ -146,8 +159,10 @@ export default {
     gameEnded (_this, line, symbol) {
       document.querySelector('#userSymbol').readOnly = false
       document.querySelector('#machineSymbol').readOnly = false
+      document.querySelector('#gridDimension').readOnly = false
       _this.gameIsBeingPlayed = false
-      if (!Array.isArray(line) && line !== undefined) alert(JSON.stringify(lin))
+      console.log(line)
+      if (!Array.isArray(line) && line !== undefined) alert(JSON.stringify(line))
       if (line) {
         alert(symbol === _this.userSymbol ? 'voce ganhou' : 'a maquina ganhou')
         for (const square of line) {
