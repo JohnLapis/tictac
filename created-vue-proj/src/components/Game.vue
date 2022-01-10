@@ -26,7 +26,7 @@
     v-on:click="$emit('gameStarted', this)"
   >Start game</button>
   <grid-layout v-model:layout="layout"
-    :style="{width: (gridDimension <= 8 ? 10 * gridDimension : 80) + '%'}"
+    :style="{width: `${gridDimension <= 8 ? 10 * gridDimension : 80}%`}"
     :col-num="2 * gridDimension"
     :row-Height="50"
     :is-draggable="false"
