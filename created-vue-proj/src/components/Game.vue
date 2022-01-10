@@ -1,5 +1,5 @@
 <template>
-  <div class="container">
+  <div class="container" :style="{color: 'white', fontWeight: 'bold'}">
     <div class="row">
       <div class="col-4">
         Enter your symbol:
