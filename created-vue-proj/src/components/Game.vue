@@ -199,11 +199,6 @@ export default {
 </script>
 
 <style>
-html, #app {
-  background-color: #ffbebc;
-  width: 100%;
-  height: 100%;
-}
 .vue-grid-layout {
   background: #000;
   flex: 0 0 auto;
