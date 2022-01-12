@@ -125,12 +125,15 @@ export default {
       if (!this.numberOfRemainingSquares) return this.gameEnded()
       this.doUserPlay(square)
       let line = this.getLine(this.layout, this.userSymbol)
-      if (line) return this.gameEnded(line, this.userSymbol)
+      // if (line) return this.gameEnded(line, this.userSymbol)
+      if (line) {console.log("b"); return this.gameEnded(line, this.userSymbol)}
 
       if (!this.numberOfRemainingSquares) return this.gameEnded()
       this.doMachinePlay()
       line = this.getLine(this.layout, this.machineSymbol)
-      if (line) this.gameEnded(line, this.machineSymbol)
+      console.log(line)
+      // if (line) this.gameEnded(line, this.machineSymbol)
+      if (line) {console.log("d"); return this.gameEnded(line, this.machineSymbol)}
     },
     updateSquare (chosenPos, chosenSymbol) {
       const index = this.layout.findIndex(
@@ -144,9 +147,13 @@ export default {
     },
     doMachinePlay () {
       let randomSquare
-      do {
-        randomSquare = this.layout[randint(this.layout.length)]
-      } while (randomSquare.symbol !== '')
+      // do {
+      //   randomSquare = this.layout[randint(this.layout.length)]
+      // } while (randomSquare.symbol !== '')
+      for (const square of this.layout.filter(s => s.X === 0)) {
+        if (square.symbol === '') randomSquare = square
+      }
+      if (!randomSquare) return console.log("oioi")
       this.updateSquare({ X: randomSquare.X, Y: randomSquare.Y }, this.machineSymbol)
       this.numberOfRemainingSquares -= 1
     },

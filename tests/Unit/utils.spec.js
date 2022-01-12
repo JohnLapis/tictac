@@ -1,4 +1,4 @@
-const _getLine = require('../../src/utils.js').getLine
+const _getLine = require('../../resources/js/utils.js').getLine
 
 function makeSquare (X, Y, symbol) {
   return { X, Y, symbol }
@@ -25,50 +25,50 @@ describe('getLine with length 3', function () {
   it.each([
     [
       [['X', 'O', 'O'],
-        ['O', 'X', 'O'],
-        ['O', 'O', 'X']],
+       ['O', 'X', 'O'],
+       ['O', 'O', 'X']],
       'X',
       [makeSquare(0, 0, 'X'), makeSquare(1, 1, 'X'), makeSquare(2, 2, 'X')]
     ],
     [
       [['X', 'O', 'O'],
-        ['', 'O', 'O'],
-        ['', 'O', 'X']],
+       [' ', 'O', 'O'],
+       [' ', 'O', 'X']],
       'O',
       [makeSquare(1, 0, 'O'), makeSquare(1, 1, 'O'), makeSquare(1, 2, 'O')]
     ],
     [
       [['X', 'X', 'X'],
-        ['O', '', 'O'],
-        ['', 'O', 'X']],
+       ['O', ' ', 'O'],
+       [' ', 'O', 'X']],
       'X',
       [makeSquare(0, 0, 'X'), makeSquare(1, 0, 'X'), makeSquare(2, 0, 'X')]
     ],
     [
       [['X', 'O', 'X'],
-        ['O', '', 'X'],
-        ['', 'O', 'X']],
+       ['O', ' ', 'X'],
+       [' ', 'O', 'X']],
       'X',
       [makeSquare(2, 0, 'X'), makeSquare(2, 1, 'X'), makeSquare(2, 2, 'X')]
     ],
     [
       [['X', 'O', 'O'],
-        ['O', 'O', 'O'],
-        ['O', 'O', 'X']],
+       ['O', 'O', 'O'],
+       ['O', 'O', 'X']],
       'X',
       false
     ],
     [
       [['X', 'O', 'X'],
-        ['O', 'X', 'O'],
-        ['O', 'X', 'O']],
+       ['O', 'X', 'O'],
+       ['O', 'X', 'O']],
       'X',
       false
     ],
     [
       [['X', 'O', 'X'],
-        ['O', 'X', 'O'],
-        ['O', 'X', 'O']],
+       ['O', 'X', 'O'],
+       ['O', 'X', 'O']],
       'O',
       false
     ]
@@ -84,9 +84,9 @@ describe('getLine with length 4', function () {
   it.each([
     [
       [['X', 'O', 'O', 'O'],
-        [' ', 'X', 'O', 'X'],
-        [' ', 'O', 'X', 'X'],
-        ['O', 'O', 'O', 'X']],
+       [' ', 'X', 'O', 'X'],
+       [' ', 'O', 'X', 'X'],
+       ['O', 'O', 'O', 'X']],
       'O',
       [
         makeSquare(3, 0, 'O'),
@@ -97,9 +97,9 @@ describe('getLine with length 4', function () {
     ],
     [
       [['X', 'O', 'O', 'O'],
-        [' ', 'X', 'O', 'X'],
-        [' ', 'O', 'X', 'X'],
-        ['O', 'O', 'O', 'X']],
+       [' ', 'X', 'O', 'X'],
+       [' ', 'O', 'X', 'X'],
+       ['O', 'O', 'O', 'X']],
       'X',
       [
         makeSquare(0, 0, 'X'),
