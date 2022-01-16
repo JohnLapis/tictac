@@ -1,0 +1,9 @@
+* tictac
+
+This is a implementation of the game tic-tac-toe ("jogo da velha" in my native tongue) using the Vue.js and Laravel frameworks, allowing some customization of the game.
+
+You can see the deployed project at https://velha-tictac.herokuapp.com.
+
+* License
+
+This work is licensed under the [[file:LICENSE.txt][MIT License]].
