@@ -11,9 +11,8 @@ function compareDistance (dist1, dist2) {
 
 function squaresAreEquallyDistanced (squares, distance) {
   if (squares.length < 2) return true
-  // Squares are ordered from top to bottom and left to right
-  squares = squares.sort(s => `${s.Y}${s.X}`)
   for (let i = 1; i < squares.length; i++) {
+    // Squares are ordered from left to right and top to bottom, so this is okay.
     const squaresDistance = getDistance(squares[i - 1], squares[i])
     if (!compareDistance(squaresDistance, distance)) return false
   }
