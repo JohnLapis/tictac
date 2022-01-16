@@ -58,7 +58,7 @@ function range (n) {
 }
 
 function makeLayout (gridDimension, squareSize) {
-  return range(gridDimension).map(x => range(gridDimension).map(y => ({
+  return range(gridDimension).map(y => range(gridDimension).map(x => ({
     // "x", "y" are used for visual position of squares
     x: x * squareSize,
     y: y * squareSize,
