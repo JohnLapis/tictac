@@ -161,7 +161,11 @@ export default {
       this.gameIsBeingPlayed = true
       this.numberOfRemainingSquares = this.gridDimension ** 2
       this.resetGrid()
-      if (randint(2)) this.doMachinePlay()
+      const machinePlaysFirst = randint(2)
+      if (machinePlaysFirst) this.doMachinePlay()
+      if (machinePlaysFirst && this.gridDimension === 1) {
+        this.gameEnded(this.layout, this.machineSymbol)
+      }
     },
     gameEnded (line, symbol) {
       this.gameIsBeingPlayed = false
