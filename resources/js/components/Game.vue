@@ -122,15 +122,15 @@ export default {
     clickListener (square) {
       if (!this.gameIsBeingPlayed || square.symbol !== '') return
 
-      if (!this.numberOfRemainingSquares) return this.gameEnded()
       this.doUserPlay(square)
       let line = this.getLine(this.layout, this.userSymbol)
       if (line) return this.gameEnded(line, this.userSymbol)
-
       if (!this.numberOfRemainingSquares) return this.gameEnded()
+
       this.doMachinePlay()
       line = this.getLine(this.layout, this.machineSymbol)
-      if (line) this.gameEnded(line, this.machineSymbol)
+      if (line) return this.gameEnded(line, this.machineSymbol)
+      if (!this.numberOfRemainingSquares) this.gameEnded()
     },
     updateSquare (chosenPos, chosenSymbol) {
       const index = this.layout.findIndex(
