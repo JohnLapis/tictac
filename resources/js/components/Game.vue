@@ -187,6 +187,7 @@ export default {
       }
     },
     isNavOrInt (event) {
+      // Only allows navigation and numeric inputs
       const allowedKeys = [
         'ArrowLeft',
         'ArrowRight',
