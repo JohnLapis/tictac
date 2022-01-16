@@ -1,6 +1,6 @@
 {
   "name": "tictac",
-  "version": "0.1.0",
+  "version": "v1.0.0-beta",
   "scripts": {
     "serve": "vue-cli-service serve",
     "build": "webpack --mode production",
