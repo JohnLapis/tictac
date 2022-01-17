@@ -26,6 +26,16 @@ module.exports = {
           'css-loader'
         ]
       },
+      {
+        test: /\.(json5?|ya?ml)$/,
+        type: 'javascript/auto',
+        loader: '@intlify/vue-i18n-loader'
+      },
+      {
+        resourceQuery: /blockType=i18n/,
+        type: 'javascript/auto',
+        loader: '@intlify/vue-i18n-loader'
+      },
     ],
   },
   plugins: [

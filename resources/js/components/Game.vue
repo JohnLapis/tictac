@@ -1,28 +1,47 @@
+<i18n lang="yaml">
+pt:
+  userSymbol: "Seu símbolo:"
+  machineSymbol: "Símbolo da máquina:"
+  gridDimension: "Dimensão do jogo:"
+  startGame: "Começar novo jogo"
+  userWins: "Você ganhou!"
+  machineWins: "A máquina ganhou!"
+  gameIsDrawn: "Velha!"
+en:
+  userSymbol: "Your symbol:"
+  machineSymbol: "Machine's symbol:"
+  gridDimension: "Grid dimension:"
+  startGame: "Start new game"
+  userWins: "You won!"
+  machineWins: "The machine won!"
+  gameIsDrawn: "Draw!"
+</i18n>
+
 <template>
   <div class="container" :style="{color: 'white', fontWeight: 'bold'}">
     <div class="row">
       <div class="col-4">
-        Enter your symbol:
-        <input maxlength="1" v-model="userSymbol" :style="{width: '20px'}">
+          {{ $t('userSymbol') }}
+          <input maxlength="1" v-model="userSymbol" :style="{width: '20px'}">
       </div>
       <div class="col-4">
-        Enter machine's symbol:
+          {{ $t('machineSymbol') }}
         <input maxlength="1" v-model="machineSymbol" :style="{width: '20px'}">
       </div>
       <div class="col-4">
-        Grid dimension:
-        <input
-          v-model.number="gridDimension"
-          v-on:keydown="isNavOrInt($event)"
-          :style="{width: '40px'}"
-        >
+          {{ $t('gridDimension') }}
+          <input
+            v-model.number="gridDimension"
+            v-on:keydown="isNavOrInt($event)"
+            :style="{width: '40px'}"
+          >
       </div>
     </div>
   </div>
   <button class="btn btn-light"
     :style="{margin: '0.5rem 0 -1.25rem 0'}"
     v-on:click="gameStarted"
-  >Start game</button>
+  >{{ $t('startGame') }}</button>
   <grid-layout v-model:layout="layout"
     :style="{width: `${gridDimension <= 8 ? 10 * gridDimension : 80}%`}"
     :col-num="2 * gridDimension"
@@ -170,12 +189,12 @@ export default {
     gameEnded (line, symbol) {
       this.gameIsBeingPlayed = false
       if (line) {
-        alert(symbol === this.userSymbol ? 'voce ganhou' : 'a maquina ganhou')
+        alert(this.$t(symbol === this.userSymbol ? 'userWins' : 'machineWins'))
         for (const square of line) {
           square.style.background = '#c4faf8'
         }
       } else {
-        alert('velha')
+        alert(this.$t('gameIsDrawn'))
         for (const square of this.layout) {
           square.style.background = '#ff9999'
         }
