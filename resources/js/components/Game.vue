@@ -21,44 +21,42 @@ en:
   <div class="container" :style="{color: 'white', fontWeight: 'bold'}">
     <div class="row">
       <div class="col-4">
-          {{ $t('userSymbol') }}
-          <input maxlength="1" v-model="userSymbol" :style="{width: '20px'}">
+        {{ $t('userSymbol') }}
+        <input maxlength="1" v-model="userSymbol" :style="{width: '20px'}">
       </div>
       <div class="col-4">
-          {{ $t('machineSymbol') }}
+        {{ $t('machineSymbol') }}
         <input maxlength="1" v-model="machineSymbol" :style="{width: '20px'}">
       </div>
       <div class="col-4">
-          {{ $t('gridDimension') }}
-          <input
-            v-model.number="gridDimension"
-            v-on:keydown="isNavOrIntKey($event)"
-            :style="{width: '40px'}"
-          >
+        {{ $t('gridDimension') }}
+        <input
+          v-model.number="gridDimension"
+          @keydown="isNavOrIntKey($event)"
+          :style="{width: '40px'}">
       </div>
     </div>
   </div>
   <button class="btn btn-light"
-    :style="{margin: '0.5rem 0 -1.25rem 0'}"
-    v-on:click="gameStarted"
-  >{{ $t('startGame') }}</button>
+          @click="gameStarted"
+          :style="{margin: '0.5rem 0 -1.25rem 0'}">
+      {{ $t('startGame') }}
+  </button>
   <grid-layout v-model:layout="layout"
-    :style="{width: `${gridDimension <= 8 ? 10 * gridDimension : 80}%`}"
-    :col-num="2 * gridDimension"
-    :row-Height="50"
-    :is-draggable="false"
-    :is-resizable="false"
-  >
+               :style="{width: `${gridDimension <= 8 ? 10 * gridDimension : 80}%`}"
+               :col-num="2 * gridDimension"
+               :row-height="50"
+               :is-draggable="false"
+               :is-resizable="false">
     <grid-item v-for="square in layout"
-      v-on:click="clickListener(square)"
-      :style="square.style"
-      :x="square.x"
-      :y="square.y"
-      :w="square.w"
-      :h="square.h"
-      :i="square.i"
-      :key="square.i"
-    >
+               @click="clickListener(square)"
+               :style="square.style"
+               :x="square.x"
+               :y="square.y"
+               :w="square.w"
+               :h="square.h"
+               :i="square.i"
+               :key="square.i">
       <span class="symbol">{{square.symbol}}</span>
     </grid-item>
   </grid-layout>
@@ -225,7 +223,7 @@ export default {
   background: #000;
   flex: 0 0 auto;
   margin: 1.5rem auto;
-  clip-path: inset(15px 15px 15px 15px)
+  clip-path: inset(15px 15px 15px 15px);
 }
 @media only screen and (max-width: 768px) {
   .vue-grid-layout {
