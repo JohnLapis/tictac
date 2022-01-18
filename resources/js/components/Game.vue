@@ -22,11 +22,17 @@ en:
     <div class="row">
       <div class="col-4">
         {{ $t('userSymbol') }}
-        <input maxlength="1" v-model="userSymbol" :style="{width: '20px'}">
+        <input maxlength="1"
+               v-model="userSymbol"
+               @keydown="$event.target.value = ''"
+               :style="{width: '20px'}">
       </div>
       <div class="col-4">
         {{ $t('machineSymbol') }}
-        <input maxlength="1" v-model="machineSymbol" :style="{width: '20px'}">
+        <input maxlength="1"
+               v-model="machineSymbol"
+               @keydown="$event.target.value = ''"
+               :style="{width: '20px'}">
       </div>
       <div class="col-4">
         {{ $t('gridDimension') }}
