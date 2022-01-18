@@ -32,7 +32,7 @@ en:
           {{ $t('gridDimension') }}
           <input
             v-model.number="gridDimension"
-            v-on:keydown="isNavOrInt($event)"
+            v-on:keydown="isNavOrIntKey($event)"
             :style="{width: '40px'}"
           >
       </div>
@@ -200,7 +200,7 @@ export default {
         }
       }
     },
-    isNavOrInt (event) {
+    isNavOrIntKey (event) {
       // Only allows navigation and numeric inputs
       const allowedKeys = [
         'ArrowLeft',
