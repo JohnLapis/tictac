@@ -49,9 +49,10 @@ en:
       {{ $t('startGame') }}
   </button>
   <grid-layout v-model:layout="layout"
-               :style="{width: `${gridDimension <= 8 ? 10 * gridDimension : 80}%`}"
                :col-num="2 * gridDimension"
-               :row-height="50"
+               :style="{width: `${Math.min(lgGridLength, maxGridLength)}px`}"
+               :row-height="lgGridLength <= maxGridLength ?
+               50 : Math.ceil((maxGridLength - 10) / (2 * gridDimension)) - 15"
                :is-draggable="false"
                :is-resizable="false">
     <grid-item v-for="square in layout"
@@ -96,6 +97,17 @@ function makeLayout (gridDimension, squareSize) {
   }))).flat()
 }
 
+function getMaxGridLength () {
+  // The margins were obtained from the available lengths to the grid, taking into
+  // account the navbar, buttons, and etc.
+  const horizontalMargin = 14
+  const verticalMargin = window.innerWidth <= 768 ? 215 : 125
+  return Math.min(
+    window.innerWidth - horizontalMargin,
+    window.innerHeight - verticalMargin
+  )
+}
+
 export default {
   components: {
     GridLayout,
@@ -118,6 +130,7 @@ export default {
     gridDimension (value) {
       value = Number(value)
       if (isNaN(value) || value < 0 || value > 20) return
+
       this.numberOfRemainingSquares = value ** 2
       this.getLine = (...args) => getLine(value, value, ...args)
       this.layout = makeLayout(value, this.squareSize)
@@ -125,6 +138,9 @@ export default {
         this.resetGrid()
         this.gameIsBeingPlayed = false
       }
+
+      this.lgGridLength = 110 * value + 10 * (value + 1)
+      this.maxGridLength = getMaxGridLength()
     }
   },
   data () {
@@ -138,7 +154,9 @@ export default {
       squareSize,
       numberOfRemainingSquares: gridDimension ** 2,
       getLine: (...args) => getLine(gridDimension, gridDimension, ...args),
-      layout: makeLayout(gridDimension, squareSize)
+      layout: makeLayout(gridDimension, squareSize),
+      lgGridLength: 110 * gridDimension + 10 * (gridDimension + 1),
+      maxGridLength: getMaxGridLength(),
     }
   },
   methods: {
@@ -228,17 +246,11 @@ export default {
 .vue-grid-layout {
   background: #000;
   flex: 0 0 auto;
-  margin: 1.5rem auto;
+  margin: 1.5rem auto 0;
   clip-path: inset(15px 15px 15px 15px);
-}
-@media only screen and (max-width: 768px) {
-  .vue-grid-layout {
-    width: 100% !important;
-  }
 }
 .vue-grid-item:not(.vue-grid-placeholder) {
   background: #fff;
-  width: 50px;
   display: flex;
   align-items: center;
   text-align: center;
