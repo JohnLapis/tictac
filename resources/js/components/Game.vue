@@ -97,7 +97,7 @@ function makeLayout (gridDimension, squareSize) {
   }))).flat()
 }
 
-function getMaxGridLength () {
+function _getMaxGridLength () {
   // The margins were obtained from the available lengths to the grid, taking into
   // account the navbar, buttons, and etc.
   const horizontalMargin = 14
@@ -106,6 +106,13 @@ function getMaxGridLength () {
     window.innerWidth - horizontalMargin,
     window.innerHeight - verticalMargin
   )
+}
+
+async function getMaxGridLength () {
+  // For some reason, on android, window.innerWidth changes without any resizing
+  // of the screen when changing gridDimension. This delay prevents the bug.
+  await new Promise(() => setTimeout(() => {}, 1))
+  return _getMaxGridLength()
 }
 
 export default {
@@ -127,7 +134,7 @@ export default {
         this.gameIsBeingPlayed = false
       }
     },
-    gridDimension (value) {
+    async gridDimension (value) {
       value = Number(value)
       if (isNaN(value) || value < 0 || value > 20) return
 
@@ -140,7 +147,7 @@ export default {
       }
 
       this.lgGridLength = 110 * value + 10 * (value + 1)
-      this.maxGridLength = getMaxGridLength()
+      this.maxGridLength = await getMaxGridLength()
     }
   },
   data () {
@@ -156,7 +163,7 @@ export default {
       getLine: (...args) => getLine(gridDimension, gridDimension, ...args),
       layout: makeLayout(gridDimension, squareSize),
       lgGridLength: 110 * gridDimension + 10 * (gridDimension + 1),
-      maxGridLength: getMaxGridLength(),
+      maxGridLength: _getMaxGridLength(),
     }
   },
   methods: {
