@@ -242,6 +242,7 @@ export default {
   display: flex;
   align-items: center;
   text-align: center;
+  touch-action: auto;
 }
 .vue-grid-item .symbol {
   width: 100%;
