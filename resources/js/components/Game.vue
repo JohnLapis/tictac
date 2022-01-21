@@ -38,7 +38,7 @@ en:
         {{ $t('gridDimension') }}
         <input
           v-model.number="gridDimension"
-          @keydown="isNavOrIntKey($event)"
+          @keydown="isIntegerKey($event)"
           :style="{width: '40px'}">
       </div>
     </div>
@@ -222,22 +222,10 @@ export default {
         }
       }
     },
-    isNavOrIntKey (event) {
-      // Only allows navigation and numeric inputs
-      const allowedKeys = [
-        'ArrowLeft',
-        'ArrowRight',
-        'ArrowUp',
-        'ArrowDown',
-        'Delete',
-        'Backspace',
-        'PageUp',
-        'PageDown',
-        'Home',
-        'End'
-      ]
-      if (!allowedKeys.includes(event.key) && isNaN(event.key)) event.preventDefault()
-    }
+    isIntegerKey (event) {
+      if (['ctrlKey', 'altKey', 'metaKey'].includes(event.key)) return
+      if (event.key.length === 1 && isNaN(event.key)) event.preventDefault()
+    },
   }
 }
 </script>
