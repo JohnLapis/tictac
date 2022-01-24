@@ -70,7 +70,7 @@ en:
 </template>
 
 <script>
-import { GridLayout, GridItem } from 'vue-grid-layout'
+const { GridLayout, GridItem } = () => import('vue-grid-layout')
 import { getLine } from '../utils'
 
 function randint (ending) {
