@@ -4,6 +4,6 @@ import App from './App.vue'
 import VueGridLayout from 'vue-grid-layout'
 
 const vm = createApp(App)
-      .use(VueGridLayout)
-      .use(createI18n({locale: document.children[0].lang, fallbackLocale: 'en'}))
-      .mount('#app')
+  .use(VueGridLayout)
+  .use(createI18n({ locale: document.children[0].lang, fallbackLocale: 'en' }))
+  .mount('#app')
