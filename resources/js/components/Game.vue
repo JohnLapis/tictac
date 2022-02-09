@@ -209,19 +209,8 @@ export default {
                 || this.isUserTurn
                 || !this.gameIsBeingPlayed
                 || this.layout[squareIndex].symbol !== '') return
-            this.layout[squareIndex].symbol = this.opponentSymbol
-            this.numberOfRemainingSquares -= 1
-            const line = this.getLine(this.layout, this.opponentSymbol)
-            if (line) {
-              this.gameEnded(line, this.opponentSymbol)
-              this.connection.close()
-              return
-            }
-            if (!this.numberOfRemainingSquares) {
-              this.gameEnded()
-              this.connection.close()
-              return
-            }
+            this.doPlay({X, Y}, this.opponentSymbol)
+            if (!this.gameIsBeingPlayed) return this.connection.close()
             this.isUserTurn = true
             break;
         }
@@ -230,46 +219,31 @@ export default {
     clickListener (square) {
       if (!this.gameIsBeingPlayed || square.symbol !== '') return
 
-      this.doUserPlay(square)
-      let line = this.getLine(this.layout, this.userSymbol)
-      if (line) return this.gameEnded(line, this.userSymbol)
-      if (!this.numberOfRemainingSquares) return this.gameEnded()
-
-      this.doMachinePlay()
-      line = this.getLine(this.layout, this.machineSymbol)
-      if (line) return this.gameEnded(line, this.machineSymbol)
-      if (!this.numberOfRemainingSquares) this.gameEnded()
+      this.doPlay(square, this.userSymbol)
+      if (!this.gameIsBeingPlayed) return
+      this.doPlay(getRandomSquare(), this.machineSymbol)
     },
     wsClickListener (square) {
       if (!this.gameIsBeingPlayed || square.symbol !== '' || !this.isUserTurn) return
 
-      this.doUserPlay(square)
+      this.doPlay(square, this.userSymbol)
       connection.send({X: square.X, Y: square.Y}) // async??
-      let line = this.getLine(this.layout, this.userSymbol)
-      if (line) {
-        this.gameEnded(line, this.userSymbol)
-        this.connection.close()
-        return
-      }
-      if (!this.numberOfRemainingSquares) {
-        this.gameEnded()
-        this.connection.close()
-        return
-      }
+      if (!this.gameIsBeingPlayed) return this.connection.close()
       this.isUserTurn = false
     },
-    doUserPlay ({ X, Y }) {
-      this.layout[X + Y * this.gridDimension].symbol = this.userSymbol
+    doPlay ({ X, Y }, symbol) {
+      this.layout[X + Y * this.gridDimension].symbol = symbol
       this.numberOfRemainingSquares -= 1
+      const line = this.getLine(this.layout, symbol)
+      if (line) this.gameEnded(line, symbol)
+      if (!this.numberOfRemainingSquares) this.gameEnded()
     },
-    doMachinePlay () {
+    getRandomSquare () {
       let randomSquare
       do {
         randomSquare = this.layout[randint(this.layout.length)]
       } while (randomSquare.symbol !== '')
-        const {X, Y} = randomSquare
-      this.layout[X + Y * this.gridDimension].symbol = this.machineSymbol
-      this.numberOfRemainingSquares -= 1
+      return {X, Y}
     },
     resetGrid () {
       for (const square of this.layout) {
@@ -283,7 +257,7 @@ export default {
       this.numberOfRemainingSquares = this.gridDimension ** 2
       this.resetGrid()
       const machinePlaysFirst = randint(2)
-      if (machinePlaysFirst) this.doMachinePlay()
+      if (machinePlaysFirst) this.doPlay(getRandomSquare(), this.machineSymbol)
       if (machinePlaysFirst && this.gridDimension === 1) {
         this.gameEnded(this.layout, this.machineSymbol)
       }
