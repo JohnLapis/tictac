@@ -7,7 +7,10 @@ pt:
   userWins: "Você ganhou!"
   machineWins: "A máquina ganhou!"
   gameIsDrawn: "Velha!"
-  playOnline: "Procure por um oponente online"
+  searchForOpponent: "Procure por um oponente online"
+  opponentFound: "Um oponente foi encontrado"
+  userPlaysFirst: "A primeira jogada é sua"
+  opponentPlaysFirst: "A primeira jogada é do oponente"
 en:
   userSymbol: "Your symbol:"
   machineSymbol: "Machine's symbol:"
@@ -16,7 +19,10 @@ en:
   userWins: "You won!"
   machineWins: "The machine won!"
   gameIsDrawn: "Draw!"
-  playOnline: "Search for an opponent online"
+  searchForOpponent: "Search for an opponent online"
+  opponentFound: "An opponent has been found"
+  userPlaysFirst: "You have the first move"
+  opponentPlaysFirst: "You have the first move"
 </i18n>
 
 <template>
@@ -53,7 +59,7 @@ en:
   <button class="btn btn-light mx-1"
           @click="mybstartWSConnection"
           :style="{margin: '0.5rem 0 -1.25rem 0'}">
-      {{ $t('playOnline') }}
+      {{ $t('searchForOpponent') }}
   </button>
   <grid-layout v-model:layout="layout"
                :col-num="2 * gridDimension"
@@ -186,31 +192,39 @@ export default {
       this.connection = connection
       connection.addEventListener('message', event => {
         const data = JSON.parse(event.data)
-        if (data.opponentFound && !this.gameIsBeingPlayed) {
-          // show small green message that the game has started against an opponent
-          console.log('opponent is here to destroy you')
-          this.opponentIdentifier = data.opponentIdentifier
-          this.opponentSymbol = data.opponentSymbol
-          return
+        switch (data.event) {
+          case 'opponentFound':
+            if (!this.gameIsBeingPlayed) {
+              this.opponentIdentifier = data.opponentIdentifier
+              this.opponentSymbol = data.opponentSymbol
+              this.isUserTurn = data.firstPlayerIdentifier !== this.opponentIdentifier
+              alert(this.$t('opponentFound'))
+              alert(this.$t(this.isUserTurn ? 'userPlaysFirst' : 'opponentPlaysFirst'))
+            }
+            break;
+          case 'opponentPlay':
+            const {X, Y, opponentIdentifier} = data
+            const squareIndex = X + Y * this.gridDimension
+            if (this.opponentIdentifier !== opponentIdentifier
+                || this.isUserTurn
+                || !this.gameIsBeingPlayed
+                || this.layout[squareIndex].symbol !== '') return
+            this.layout[squareIndex].symbol = this.opponentSymbol
+            this.numberOfRemainingSquares -= 1
+            const line = this.getLine(this.layout, this.opponentSymbol)
+            if (line) {
+              this.gameEnded(line, this.opponentSymbol)
+              this.connection.close()
+              return
+            }
+            if (!this.numberOfRemainingSquares) {
+              this.gameEnded()
+              this.connection.close()
+              return
+            }
+            this.isUserTurn = true
+            break;
         }
-
-        if (this.opponentIdentifier !== data.opponentIdentifier) return
-        const squareIndex = data.X + data.Y * this.gridDimension
-        if (!this.gameIsBeingPlayed || layout[squareIndex].symbol !== '') return
-        this.layout[squareIndex].symbol = this.opponentSymbol
-        this.numberOfRemainingSquares -= 1
-        const line = this.getLine(this.layout, this.opponentSymbol)
-        if (line) {
-          this.gameEnded(line, this.opponentSymbol)
-          this.connection.close()
-          return
-        }
-        if (!this.numberOfRemainingSquares) {
-          this.gameEnded()
-          this.connection.close()
-          return
-        }
-        this.isUserTurn = true
       })
     },
     clickListener (square) {
@@ -253,7 +267,7 @@ export default {
       do {
         randomSquare = this.layout[randint(this.layout.length)]
       } while (randomSquare.symbol !== '')
-      const {X, Y} = randomSquare
+        const {X, Y} = randomSquare
       this.layout[X + Y * this.gridDimension].symbol = this.machineSymbol
       this.numberOfRemainingSquares -= 1
     },
