@@ -57,7 +57,7 @@ en:
       {{ $t('startGame') }}
   </button>
   <button class="btn btn-light mx-1"
-          @click="mybstartWSConnection"
+          @click="searchForOpponent"
           :style="{margin: '0.5rem 0 -1.25rem 0'}">
       {{ $t('searchForOpponent') }}
   </button>
@@ -69,8 +69,8 @@ en:
                :is-draggable="false"
                :is-resizable="false">
     <grid-item v-for="square in layout"
-               @click="(connection.readyState === 1
-                 ? wsClickListener : clickListener)(square)"
+               @click="wsConnectionIsOpen() ?
+                 wsClickListener(square) : clickListener(square)"
                :style="square.style"
                :x="square.x"
                :y="square.y"
@@ -183,53 +183,12 @@ export default {
     }
   },
   methods: {
-    mybstartWSConnection () {
-      if (this.connection !== null || this.connection.readyState !== 3) return
-
-      const connection = new WebSocket(`ws://${location.hostname}:6001/app/pusher_key`)
-      //wtf do i do with "protocol=7&client=js&version=7.0.6&flash=false"??
-      window.C = connection
-      this.connection = connection
-      connection.addEventListener('message', event => {
-        const data = JSON.parse(event.data)
-        switch (data.event) {
-          case 'opponentFound':
-            if (!this.gameIsBeingPlayed) {
-              this.opponentIdentifier = data.opponentIdentifier
-              this.opponentSymbol = data.opponentSymbol
-              this.isUserTurn = data.firstPlayerIdentifier !== this.opponentIdentifier
-              alert(this.$t('opponentFound'))
-              alert(this.$t(this.isUserTurn ? 'userPlaysFirst' : 'opponentPlaysFirst'))
-            }
-            break;
-          case 'opponentPlay':
-            const {X, Y, opponentIdentifier} = data
-            const squareIndex = X + Y * this.gridDimension
-            if (this.opponentIdentifier !== opponentIdentifier
-                || this.isUserTurn
-                || !this.gameIsBeingPlayed
-                || this.layout[squareIndex].symbol !== '') return
-            this.doPlay({X, Y}, this.opponentSymbol)
-            if (!this.gameIsBeingPlayed) return this.connection.close()
-            this.isUserTurn = true
-            break;
-        }
-      })
-    },
     clickListener (square) {
       if (!this.gameIsBeingPlayed || square.symbol !== '') return
 
       this.doPlay(square, this.userSymbol)
       if (!this.gameIsBeingPlayed) return
       this.doPlay(getRandomSquare(), this.machineSymbol)
-    },
-    wsClickListener (square) {
-      if (!this.gameIsBeingPlayed || square.symbol !== '' || !this.isUserTurn) return
-
-      this.doPlay(square, this.userSymbol)
-      connection.send({X: square.X, Y: square.Y}) // async??
-      if (!this.gameIsBeingPlayed) return this.connection.close()
-      this.isUserTurn = false
     },
     doPlay ({ X, Y }, symbol) {
       this.layout[X + Y * this.gridDimension].symbol = symbol
@@ -252,6 +211,7 @@ export default {
       }
     },
     gameStarted () {
+      if (this.connection !== null || !this.wsConnectionIsClosed()) return
       if (this.gridDimension === 0) return this.gameEnded()
       this.gameIsBeingPlayed = true
       this.numberOfRemainingSquares = this.gridDimension ** 2
@@ -279,6 +239,56 @@ export default {
     isIntegerKey (event) {
       if (['ctrlKey', 'altKey', 'metaKey'].includes(event.key)) return
       if (event.key.length === 1 && isNaN(event.key)) event.preventDefault()
+    },
+    wsClickListener (square) {
+      if (!this.gameIsBeingPlayed || square.symbol !== '' || !this.isUserTurn) return
+
+      this.doPlay(square, this.userSymbol)
+      connection.send({event: "opponentPlay", square: {X: square.X, Y: square.Y}})
+      if (!this.gameIsBeingPlayed) return this.connection.close()
+      this.isUserTurn = false
+    },
+    searchForOpponent () {
+      if (this.wsConnectionIsOpen()) {
+        return this.connection.send({event: 'searchForOpponent'})
+      }
+      this.startWSConnection()
+      this.connection.addEventListener('open', function listener () {
+        this.connection.send({event: 'searchForOpponent'})
+        this.connection.removeEventListener('open', listener)
+      })
+    },
+    startWSConnection () {
+      if (this.connection !== null || !this.wsConnectionIsClosed()) return
+      this.connection = new WebSocket(`ws://${location.hostname}:6001/app/pusher_key`)
+      //wtf do i do with "protocol=7&client=js&version=7.0.6&flash=false"??
+      window.C = this.connection
+      this.connection.addEventListener('message', wsListener)
+    },
+    wsListener (event) {
+      const data = JSON.parse(event.data)
+      if (data.event === 'opponentFound') {
+        this.opponentIdentifier = data.opponentIdentifier
+        this.opponentSymbol = data.opponentSymbol
+        this.isUserTurn = data.firstPlayerIdentifier !== this.opponentIdentifier
+        alert(this.$t('opponentFound'))
+        alert(this.$t(this.isUserTurn ? 'userPlaysFirst' : 'opponentPlaysFirst'))
+      } else if (data.event ===  'opponentPlay') {
+        const {X, Y, opponentIdentifier} = data
+        const squareIndex = X + Y * this.gridDimension
+        if (this.opponentIdentifier !== opponentIdentifier
+            || this.isUserTurn
+            || this.layout[squareIndex].symbol !== '') return
+        this.doPlay({X, Y}, this.opponentSymbol)
+        if (!this.gameIsBeingPlayed) return this.connection.close()
+        this.isUserTurn = true
+      }
+    },
+    wsConnectionIsOpen () {
+      return this.connection.readyState === 1
+    },
+    wsConnectionIsClosed () {
+      return this.connection.readyState === 3
     },
   }
 }
