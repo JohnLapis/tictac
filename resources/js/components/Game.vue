@@ -180,14 +180,8 @@ export default {
       if (line) return this.gameEnded(line, this.machineSymbol)
       if (!this.numberOfRemainingSquares) this.gameEnded()
     },
-    updateSquare (chosenPos, chosenSymbol) {
-      const index = this.layout.findIndex(
-        ({ X, Y }) => X === chosenPos.X && Y === chosenPos.Y
-      )
-      this.layout[index].symbol = chosenSymbol
-    },
     doUserPlay ({ X, Y }) {
-      this.updateSquare({ X, Y }, this.userSymbol)
+      this.layout[X + Y * this.gridDimension].symbol = this.userSymbol
       this.numberOfRemainingSquares -= 1
     },
     doMachinePlay () {
@@ -195,7 +189,8 @@ export default {
       do {
         randomSquare = this.layout[randint(this.layout.length)]
       } while (randomSquare.symbol !== '')
-      this.updateSquare({ X: randomSquare.X, Y: randomSquare.Y }, this.machineSymbol)
+      const {X, Y} = randomSquare
+      this.layout[X + Y * this.gridDimension].symbol = this.machineSymbol
       this.numberOfRemainingSquares -= 1
     },
     resetGrid () {
