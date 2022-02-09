@@ -7,6 +7,7 @@ pt:
   userWins: "Você ganhou!"
   machineWins: "A máquina ganhou!"
   gameIsDrawn: "Velha!"
+  playOnline: "Procure por um oponente online"
 en:
   userSymbol: "Your symbol:"
   machineSymbol: "Machine's symbol:"
@@ -15,6 +16,7 @@ en:
   userWins: "You won!"
   machineWins: "The machine won!"
   gameIsDrawn: "Draw!"
+  playOnline: "Search for an opponent online"
 </i18n>
 
 <template>
@@ -43,10 +45,15 @@ en:
       </div>
     </div>
   </div>
-  <button class="btn btn-light"
+  <button class="btn btn-light mx-1"
           @click="gameStarted"
           :style="{margin: '0.5rem 0 -1.25rem 0'}">
       {{ $t('startGame') }}
+  </button>
+  <button class="btn btn-light mx-1"
+          @click="mybstartWSConnection"
+          :style="{margin: '0.5rem 0 -1.25rem 0'}">
+      {{ $t('playOnline') }}
   </button>
   <grid-layout v-model:layout="layout"
                :col-num="2 * gridDimension"
@@ -56,7 +63,8 @@ en:
                :is-draggable="false"
                :is-resizable="false">
     <grid-item v-for="square in layout"
-               @click="clickListener(square)"
+               @click="(connection.readyState === 1
+                 ? wsClickListener : clickListener)(square)"
                :style="square.style"
                :x="square.x"
                :y="square.y"
@@ -157,6 +165,8 @@ export default {
       gridDimension,
       userSymbol: 'X',
       machineSymbol: 'O',
+      connection: null,
+      opponentSymbol: null,
       gameIsBeingPlayed: false,
       squareSize,
       numberOfRemainingSquares: gridDimension ** 2,
@@ -167,6 +177,42 @@ export default {
     }
   },
   methods: {
+    mybstartWSConnection () {
+      if (this.connection !== null || this.connection.readyState !== 3) return
+
+      const connection = new WebSocket(`ws://${location.hostname}:6001/app/pusher_key`)
+      //wtf do i do with "protocol=7&client=js&version=7.0.6&flash=false"??
+      window.C = connection
+      this.connection = connection
+      connection.addEventListener('message', event => {
+        const data = JSON.parse(event.data)
+        if (data.opponentFound && !this.gameIsBeingPlayed) {
+          // show small green message that the game has started against an opponent
+          console.log('opponent is here to destroy you')
+          this.opponentIdentifier = data.opponentIdentifier
+          this.opponentSymbol = data.opponentSymbol
+          return
+        }
+
+        if (this.opponentIdentifier !== data.opponentIdentifier) return
+        const squareIndex = data.X + data.Y * this.gridDimension
+        if (!this.gameIsBeingPlayed || layout[squareIndex].symbol !== '') return
+        this.layout[squareIndex].symbol = this.opponentSymbol
+        this.numberOfRemainingSquares -= 1
+        const line = this.getLine(this.layout, this.opponentSymbol)
+        if (line) {
+          this.gameEnded(line, this.opponentSymbol)
+          this.connection.close()
+          return
+        }
+        if (!this.numberOfRemainingSquares) {
+          this.gameEnded()
+          this.connection.close()
+          return
+        }
+        this.isUserTurn = true
+      })
+    },
     clickListener (square) {
       if (!this.gameIsBeingPlayed || square.symbol !== '') return
 
@@ -179,6 +225,24 @@ export default {
       line = this.getLine(this.layout, this.machineSymbol)
       if (line) return this.gameEnded(line, this.machineSymbol)
       if (!this.numberOfRemainingSquares) this.gameEnded()
+    },
+    wsClickListener (square) {
+      if (!this.gameIsBeingPlayed || square.symbol !== '' || !this.isUserTurn) return
+
+      this.doUserPlay(square)
+      connection.send({X: square.X, Y: square.Y}) // async??
+      let line = this.getLine(this.layout, this.userSymbol)
+      if (line) {
+        this.gameEnded(line, this.userSymbol)
+        this.connection.close()
+        return
+      }
+      if (!this.numberOfRemainingSquares) {
+        this.gameEnded()
+        this.connection.close()
+        return
+      }
+      this.isUserTurn = false
     },
     doUserPlay ({ X, Y }) {
       this.layout[X + Y * this.gridDimension].symbol = this.userSymbol
