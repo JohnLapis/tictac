@@ -27,11 +27,7 @@ class EventServiceProvider extends ServiceProvider
      */
     public function boot()
     {
-        // xu that's automatic right?
-        // Event::listen(
-        //     SearchForOpponent::class,
-        //     [SendOpponentData::class, 'handle']
-        // );
+        //
     }
 
     public function shouldDiscoverEvents()

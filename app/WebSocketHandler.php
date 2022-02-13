@@ -7,6 +7,8 @@ use Ratchet\RFC6455\Messaging\MessageInterface;
 use Ratchet\WebSocket\MessageComponentInterface;
 use App\Events\SearchForOpponent;
 
+$GLOBALS['MATCH_QUEUE'] = [];
+
 class WebSocketHandler implements MessageComponentInterface
 {
 
@@ -29,8 +31,14 @@ class WebSocketHandler implements MessageComponentInterface
 
     public function onClose(ConnectionInterface $connection)
     {
+        for ($i = 0; $i < count($GLOBALS['MATCH_QUEUE']); ++$i) {
+            if ($GLOBALS['MATCH_QUEUE'][$i]['id'] == $connection->socketId) {
+                array_splice($GLOBALS['MATCH_QUEUE'], $i, 1);
+                return;
+            }
+        }
         // Do i need to do go'o?
-        // $this->channelManager->removeFromAllChannels($connection);
+        $this->channelManager->removeFromAllChannels($connection);
     }
 
     public function onError(ConnectionInterface $connection, \Exception $e)
@@ -42,13 +50,50 @@ class WebSocketHandler implements MessageComponentInterface
     {
         $data = json_decode($msg->getPayload());
         if ($data->event == "SearchForOpponent") {
-            echo "1\n";
-            event(new SearchForOpponent($connection, $data->symbol));
-            echo "2\n";
-        } else if ($data->event == "opponentPlay") {
-            $connection->send('{"sla":"sla"}');
-        }
+            $userId = $connection->socketId;
 
-        // $connection->send(json_encode(['bomdia' => json_decode($msg->getPayload())]));
+            if (count($GLOBALS['MATCH_QUEUE']) == 0) {
+                return array_push($GLOBALS['MATCH_QUEUE'], [
+                    'connection' => $connection,
+                    'id' => $connection->socketId,
+                    'symbol' => $data->symbol,
+                ]);
+            } else if (count($GLOBALS['MATCH_QUEUE']) == 1
+                       && $GLOBALS['MATCH_QUEUE'][0]['id'] == $userId) {
+                return;
+            }
+
+            for ($i = 0; $i < count($GLOBALS['MATCH_QUEUE']); ++$i) {
+                if ($GLOBALS['MATCH_QUEUE'][$i]['id'] != $userId) {
+                    $opponent = $GLOBALS['MATCH_QUEUE'][$i];
+                    array_splice($GLOBALS['MATCH_QUEUE'], $i, 1);
+                    break;
+                }
+            }
+
+            $firstPlayerId = rand(0, 1) ? $userId : $opponent['id'];
+            $connection->send(json_encode([
+                'event' => 'opponentFound',
+                'opponent' => [
+                    'id' => $opponent['id'],
+                    'symbol' => $opponent['symbol']
+                ],
+                'firstPlayerId' => $firstPlayerId,
+            ]));
+            $opponent['connection']->send(json_encode([
+                'event' => 'opponentFound',
+                'opponent' => [
+                    'id' => $userId,
+                    'symbol' => $data->symbol
+                ],
+                'firstPlayerId' => $firstPlayerId,
+            ]));
+        } else if ($data->event == "opponentPlay") {
+            $connection->send(json_encode([
+                'event' => 'opponentPlay',
+                'opponent' => ['id' => $connection->socketId],
+                'square' => ['X' => $data->X, 'Y' => $data->Y],
+            ]));
+        }
     }
 }
