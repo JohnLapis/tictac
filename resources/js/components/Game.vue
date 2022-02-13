@@ -11,6 +11,7 @@ pt:
   opponentFound: "Um oponente foi encontrado"
   userPlaysFirst: "A primeira jogada é sua"
   opponentPlaysFirst: "A primeira jogada é do oponente"
+  opponentPlayTimedOut: "Partida encerrada porque oponente levou tempo demais para fazer sua jogada"
 en:
   userSymbol: "Your symbol:"
   machineSymbol: "Machine's symbol:"
@@ -23,6 +24,7 @@ en:
   opponentFound: "An opponent has been found"
   userPlaysFirst: "You have the first move"
   opponentPlaysFirst: "The opponent has the first move"
+  opponentPlayTimedOut: "Match ended because opponent took too much time to make a move"
 </i18n>
 
 <template>
@@ -249,6 +251,11 @@ export default {
       }))
       if (!this.gameIsBeingPlayed) return this.connection.close()
       this.isUserTurn = false
+      this.timeoutId = setTimeout(() => {
+        if (this.connection) this.connection.close()
+        alert(this.$t('opponentPlayTimedOut'))
+        this.gameEnded()
+      }, 20*1000)
     },
     searchForOpponent () {
       if (this.connection === null || this.wsConnectionIsOpen()) {
@@ -276,6 +283,7 @@ export default {
         alert(this.$t('opponentFound'))
         alert(this.$t(this.isUserTurn ? 'userPlaysFirst' : 'opponentPlaysFirst'))
       } else if (data.event ===  'OpponentPlay') {
+        clearTimeout(this.timeoutId)
         const {X, Y, opponent: {id: opponentId}} = data
         const squareIndex = X + Y * this.gridDimension
         if (this.opponentId !== opponentId
