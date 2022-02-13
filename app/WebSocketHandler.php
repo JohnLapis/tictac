@@ -17,16 +17,6 @@ class WebSocketHandler implements MessageComponentInterface
         $connection->socketId = sprintf('%d.%d', random_int(1, 1000000000), random_int(1, 1000000000));
         $connection->app = new \stdClass();
         $connection->app->id = 'my_super_id';
-
-        // debug_print_backtrace();
-
-        // $this->clients->attach($connection);
-
-        // Should i use go'o?
-        // $this
-        //     ->verifyAppKey($connection)
-        //     ->generateSocketId($connection)
-        //     ->establishConnection($connection);
     }
 
     public function onClose(ConnectionInterface $connection)
@@ -37,8 +27,6 @@ class WebSocketHandler implements MessageComponentInterface
                 return;
             }
         }
-        // Do i need to do go'o?
-        $this->channelManager->removeFromAllChannels($connection);
     }
 
     public function onError(ConnectionInterface $connection, \Exception $e)
@@ -49,7 +37,7 @@ class WebSocketHandler implements MessageComponentInterface
     public function onMessage(ConnectionInterface $connection, MessageInterface $msg)
     {
         $data = json_decode($msg->getPayload());
-        if ($data->event == "SearchForOpponent") {
+        if ($data->event == 'SearchForOpponent') {
             $userId = $connection->socketId;
 
             if (count($GLOBALS['MATCH_QUEUE']) == 0) {
@@ -73,7 +61,7 @@ class WebSocketHandler implements MessageComponentInterface
 
             $firstPlayerId = rand(0, 1) ? $userId : $opponent['id'];
             $connection->send(json_encode([
-                'event' => 'opponentFound',
+                'event' => 'OpponentFound',
                 'opponent' => [
                     'id' => $opponent['id'],
                     'symbol' => $opponent['symbol']
@@ -81,16 +69,16 @@ class WebSocketHandler implements MessageComponentInterface
                 'firstPlayerId' => $firstPlayerId,
             ]));
             $opponent['connection']->send(json_encode([
-                'event' => 'opponentFound',
+                'event' => 'OpponentFound',
                 'opponent' => [
                     'id' => $userId,
                     'symbol' => $data->symbol
                 ],
                 'firstPlayerId' => $firstPlayerId,
             ]));
-        } else if ($data->event == "opponentPlay") {
+        } else if ($data->event == 'OpponentPlay') {
             $connection->send(json_encode([
-                'event' => 'opponentPlay',
+                'event' => 'OpponentPlay',
                 'opponent' => ['id' => $connection->socketId],
                 'square' => ['X' => $data->X, 'Y' => $data->Y],
             ]));

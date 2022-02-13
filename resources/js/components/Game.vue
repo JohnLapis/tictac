@@ -7,7 +7,7 @@ pt:
   userWins: "Você ganhou!"
   machineWins: "A máquina ganhou!"
   gameIsDrawn: "Velha!"
-  SearchForOpponent: "Procure por um oponente online"
+  searchForOpponent: "Procure por um oponente online"
   opponentFound: "Um oponente foi encontrado"
   userPlaysFirst: "A primeira jogada é sua"
   opponentPlaysFirst: "A primeira jogada é do oponente"
@@ -22,7 +22,7 @@ en:
   searchForOpponent: "Search for an opponent online"
   opponentFound: "An opponent has been found"
   userPlaysFirst: "You have the first move"
-  opponentPlaysFirst: "You have the first move"
+  opponentPlaysFirst: "The opponent has the first move"
 </i18n>
 
 <template>
@@ -244,35 +244,38 @@ export default {
       if (!this.gameIsBeingPlayed || square.symbol !== '' || !this.isUserTurn) return
 
       this.doPlay(square, this.userSymbol)
-      connection.send({event: "opponentPlay", square: {X: square.X, Y: square.Y}})
+      connection.send(JSON.stringify({
+        event: 'OpponentPlay', square: {X: square.X, Y: square.Y}
+      }))
       if (!this.gameIsBeingPlayed) return this.connection.close()
       this.isUserTurn = false
     },
-    async searchForOpponent () {
-      // if (!(this.connection !== null && this.wsConnectionIsOpen())) {
+    searchForOpponent () {
       if (this.connection === null || this.wsConnectionIsOpen()) {
-        await this.startWSConnection()
+        this.startWSConnection()
       }
-      this.connection.send({event: 'SearchForOpponent'})
+      setTimeout(() => this.connection.send(JSON.stringify({
+        event: 'SearchForOpponent',
+        symbol: this.userSymbol
+      })), 1000)
     },
-    async startWSConnection () {
+    startWSConnection () {
       if (this.connection !== null && !this.wsConnectionIsClosed()) return
-      // this.connection = new WebSocket(`ws://${location.hostname}:6001/app/pusher_key`)
-      // this.connection = new WebSocket(`ws://${location.hostname}:6001/events`) // UPDATE those are the channels
-      this.connection = new WebSocket(`ws://${location.hostname}:6001/websocket`) // UPDATE those are the channels
-      //wtf do i do with "protocol=7&client=js&version=7.0.6&flash=false"??
+      this.connection = new WebSocket(`ws://${location.hostname}:6001/websocket`)
       window.C = this.connection
       this.connection.addEventListener('message', this.wsListener)
     },
     wsListener (event) {
       const data = JSON.parse(event.data)
-      if (data.event === 'opponentFound') {
+      if (data.event === 'OpponentFound') {
         this.opponentId = data.opponent.id
-        this.opponentSymbol = data.opponent.symbol
+        this.opponentSymbol = this.userSymbol === data.opponent.symbol ?
+                              (this.userSymbol === 'X' ? 'O' : 'X') :
+                              data.opponent.symbol
         this.isUserTurn = data.firstPlayerId !== this.opponentId
         alert(this.$t('opponentFound'))
         alert(this.$t(this.isUserTurn ? 'userPlaysFirst' : 'opponentPlaysFirst'))
-      } else if (data.event ===  'opponentPlay') {
+      } else if (data.event ===  'OpponentPlay') {
         const {X, Y, opponent: {id: opponentId}} = data
         const squareIndex = X + Y * this.gridDimension
         if (this.opponentId !== opponentId
@@ -281,10 +284,6 @@ export default {
         this.doPlay({X, Y}, this.opponentSymbol)
         if (!this.gameIsBeingPlayed) return this.connection.close()
         this.isUserTurn = true
-      } else {
-        console.log('===============================')
-        console.log(data)
-        console.log('===============================')
       }
     },
     wsConnectionIsOpen () {
