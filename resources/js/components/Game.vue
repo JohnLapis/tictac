@@ -7,6 +7,10 @@ pt:
   userWins: "Você ganhou!"
   machineWins: "A máquina ganhou!"
   gameIsDrawn: "Velha!"
+  searchForOpponent: "Procure por um oponente online"
+  opponentFound: "Um oponente foi encontrado"
+  userPlaysFirst: "A primeira jogada é sua"
+  opponentPlaysFirst: "A primeira jogada é do oponente"
 en:
   userSymbol: "Your symbol:"
   machineSymbol: "Machine's symbol:"
@@ -15,6 +19,10 @@ en:
   userWins: "You won!"
   machineWins: "The machine won!"
   gameIsDrawn: "Draw!"
+  searchForOpponent: "Search for an opponent online"
+  opponentFound: "An opponent has been found"
+  userPlaysFirst: "You have the first move"
+  opponentPlaysFirst: "The opponent has the first move"
 </i18n>
 
 <template>
@@ -43,10 +51,15 @@ en:
       </div>
     </div>
   </div>
-  <button class="btn btn-light"
+  <button class="btn btn-light mx-1"
           @click="gameStarted"
           :style="{margin: '0.5rem 0 -1.25rem 0'}">
       {{ $t('startGame') }}
+  </button>
+  <button class="btn btn-light mx-1"
+          @click="searchForOpponent"
+          :style="{margin: '0.5rem 0 -1.25rem 0'}">
+      {{ $t('searchForOpponent') }}
   </button>
   <grid-layout v-model:layout="layout"
                :col-num="2 * gridDimension"
@@ -56,7 +69,8 @@ en:
                :is-draggable="false"
                :is-resizable="false">
     <grid-item v-for="square in layout"
-               @click="clickListener(square)"
+               @click="connection !== null && wsConnectionIsOpen() ?
+                 wsClickListener(square) : clickListener(square)"
                :style="square.style"
                :x="square.x"
                :y="square.y"
@@ -157,6 +171,8 @@ export default {
       gridDimension,
       userSymbol: 'X',
       machineSymbol: 'O',
+      connection: null,
+      opponentSymbol: null,
       gameIsBeingPlayed: false,
       squareSize,
       numberOfRemainingSquares: gridDimension ** 2,
@@ -170,28 +186,23 @@ export default {
     clickListener (square) {
       if (!this.gameIsBeingPlayed || square.symbol !== '') return
 
-      this.doUserPlay(square)
-      let line = this.getLine(this.layout, this.userSymbol)
-      if (line) return this.gameEnded(line, this.userSymbol)
-      if (!this.numberOfRemainingSquares) return this.gameEnded()
-
-      this.doMachinePlay()
-      line = this.getLine(this.layout, this.machineSymbol)
-      if (line) return this.gameEnded(line, this.machineSymbol)
+      this.doPlay(square, this.userSymbol)
+      if (!this.gameIsBeingPlayed) return
+      this.doPlay(getRandomSquare(), this.machineSymbol)
+    },
+    doPlay ({ X, Y }, symbol) {
+      this.layout[X + Y * this.gridDimension].symbol = symbol
+      this.numberOfRemainingSquares -= 1
+      const line = this.getLine(this.layout, symbol)
+      if (line) this.gameEnded(line, symbol)
       if (!this.numberOfRemainingSquares) this.gameEnded()
     },
-    doUserPlay ({ X, Y }) {
-      this.layout[X + Y * this.gridDimension].symbol = this.userSymbol
-      this.numberOfRemainingSquares -= 1
-    },
-    doMachinePlay () {
+    getRandomSquare () {
       let randomSquare
       do {
         randomSquare = this.layout[randint(this.layout.length)]
       } while (randomSquare.symbol !== '')
-      const {X, Y} = randomSquare
-      this.layout[X + Y * this.gridDimension].symbol = this.machineSymbol
-      this.numberOfRemainingSquares -= 1
+      return {X, Y}
     },
     resetGrid () {
       for (const square of this.layout) {
@@ -200,12 +211,13 @@ export default {
       }
     },
     gameStarted () {
+      if (this.connection !== null && !this.wsConnectionIsClosed()) return
       if (this.gridDimension === 0) return this.gameEnded()
       this.gameIsBeingPlayed = true
       this.numberOfRemainingSquares = this.gridDimension ** 2
       this.resetGrid()
       const machinePlaysFirst = randint(2)
-      if (machinePlaysFirst) this.doMachinePlay()
+      if (machinePlaysFirst) this.doPlay(getRandomSquare(), this.machineSymbol)
       if (machinePlaysFirst && this.gridDimension === 1) {
         this.gameEnded(this.layout, this.machineSymbol)
       }
@@ -227,6 +239,58 @@ export default {
     isIntegerKey (event) {
       if (['ctrlKey', 'altKey', 'metaKey'].includes(event.key)) return
       if (event.key.length === 1 && isNaN(event.key)) event.preventDefault()
+    },
+    wsClickListener (square) {
+      if (!this.gameIsBeingPlayed || square.symbol !== '' || !this.isUserTurn) return
+
+      this.doPlay(square, this.userSymbol)
+      connection.send(JSON.stringify({
+        event: 'OpponentPlay', square: {X: square.X, Y: square.Y}
+      }))
+      if (!this.gameIsBeingPlayed) return this.connection.close()
+      this.isUserTurn = false
+    },
+    searchForOpponent () {
+      if (this.connection === null || this.wsConnectionIsOpen()) {
+        this.startWSConnection()
+      }
+      setTimeout(() => this.connection.send(JSON.stringify({
+        event: 'SearchForOpponent',
+        symbol: this.userSymbol
+      })), 1000)
+    },
+    startWSConnection () {
+      if (this.connection !== null && !this.wsConnectionIsClosed()) return
+      this.connection = new WebSocket(`ws://${location.hostname}:6001/websocket`)
+      window.C = this.connection
+      this.connection.addEventListener('message', this.wsListener)
+    },
+    wsListener (event) {
+      const data = JSON.parse(event.data)
+      if (data.event === 'OpponentFound') {
+        this.opponentId = data.opponent.id
+        this.opponentSymbol = this.userSymbol === data.opponent.symbol ?
+                              (this.userSymbol === 'X' ? 'O' : 'X') :
+                              data.opponent.symbol
+        this.isUserTurn = data.firstPlayerId !== this.opponentId
+        alert(this.$t('opponentFound'))
+        alert(this.$t(this.isUserTurn ? 'userPlaysFirst' : 'opponentPlaysFirst'))
+      } else if (data.event ===  'OpponentPlay') {
+        const {X, Y, opponent: {id: opponentId}} = data
+        const squareIndex = X + Y * this.gridDimension
+        if (this.opponentId !== opponentId
+            || this.isUserTurn
+            || this.layout[squareIndex].symbol !== '') return
+        this.doPlay({X, Y}, this.opponentSymbol)
+        if (!this.gameIsBeingPlayed) return this.connection.close()
+        this.isUserTurn = true
+      }
+    },
+    wsConnectionIsOpen () {
+      return this.connection.readyState === 1
+    },
+    wsConnectionIsClosed () {
+      return this.connection.readyState === 3
     },
   }
 }
