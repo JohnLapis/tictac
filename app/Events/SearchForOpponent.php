@@ -19,9 +19,13 @@ class SearchForOpponent
      *
      * @return void
      */
-    public function __construct()
+    public function __construct($connection, $symbol)
     {
-        //
+        $this->user = [
+            'connection' => $connection,
+            'id' => $connection->socketId,
+            'symbol' => $symbol,
+        ];
     }
 
     /**

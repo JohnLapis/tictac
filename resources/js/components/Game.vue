@@ -7,7 +7,7 @@ pt:
   userWins: "Você ganhou!"
   machineWins: "A máquina ganhou!"
   gameIsDrawn: "Velha!"
-  searchForOpponent: "Procure por um oponente online"
+  SearchForOpponent: "Procure por um oponente online"
   opponentFound: "Um oponente foi encontrado"
   userPlaysFirst: "A primeira jogada é sua"
   opponentPlaysFirst: "A primeira jogada é do oponente"
@@ -69,7 +69,7 @@ en:
                :is-draggable="false"
                :is-resizable="false">
     <grid-item v-for="square in layout"
-               @click="wsConnectionIsOpen() ?
+               @click="connection !== null && wsConnectionIsOpen() ?
                  wsClickListener(square) : clickListener(square)"
                :style="square.style"
                :x="square.x"
@@ -211,7 +211,7 @@ export default {
       }
     },
     gameStarted () {
-      if (this.connection !== null || !this.wsConnectionIsClosed()) return
+      if (this.connection !== null && !this.wsConnectionIsClosed()) return
       if (this.gridDimension === 0) return this.gameEnded()
       this.gameIsBeingPlayed = true
       this.numberOfRemainingSquares = this.gridDimension ** 2
@@ -248,40 +248,43 @@ export default {
       if (!this.gameIsBeingPlayed) return this.connection.close()
       this.isUserTurn = false
     },
-    searchForOpponent () {
-      if (this.wsConnectionIsOpen()) {
-        return this.connection.send({event: 'searchForOpponent'})
+    async searchForOpponent () {
+      // if (!(this.connection !== null && this.wsConnectionIsOpen())) {
+      if (this.connection === null || this.wsConnectionIsOpen()) {
+        await this.startWSConnection()
       }
-      this.startWSConnection()
-      this.connection.addEventListener('open', function listener () {
-        this.connection.send({event: 'searchForOpponent'})
-        this.connection.removeEventListener('open', listener)
-      })
+      this.connection.send({event: 'SearchForOpponent'})
     },
-    startWSConnection () {
-      if (this.connection !== null || !this.wsConnectionIsClosed()) return
-      this.connection = new WebSocket(`ws://${location.hostname}:6001/app/pusher_key`)
+    async startWSConnection () {
+      if (this.connection !== null && !this.wsConnectionIsClosed()) return
+      // this.connection = new WebSocket(`ws://${location.hostname}:6001/app/pusher_key`)
+      // this.connection = new WebSocket(`ws://${location.hostname}:6001/events`) // UPDATE those are the channels
+      this.connection = new WebSocket(`ws://${location.hostname}:6001/websocket`) // UPDATE those are the channels
       //wtf do i do with "protocol=7&client=js&version=7.0.6&flash=false"??
       window.C = this.connection
-      this.connection.addEventListener('message', wsListener)
+      this.connection.addEventListener('message', this.wsListener)
     },
     wsListener (event) {
       const data = JSON.parse(event.data)
       if (data.event === 'opponentFound') {
-        this.opponentIdentifier = data.opponentIdentifier
-        this.opponentSymbol = data.opponentSymbol
-        this.isUserTurn = data.firstPlayerIdentifier !== this.opponentIdentifier
+        this.opponentId = data.opponent.id
+        this.opponentSymbol = data.opponent.symbol
+        this.isUserTurn = data.firstPlayerId !== this.opponentId
         alert(this.$t('opponentFound'))
         alert(this.$t(this.isUserTurn ? 'userPlaysFirst' : 'opponentPlaysFirst'))
       } else if (data.event ===  'opponentPlay') {
-        const {X, Y, opponentIdentifier} = data
+        const {X, Y, opponent: {id: opponentId}} = data
         const squareIndex = X + Y * this.gridDimension
-        if (this.opponentIdentifier !== opponentIdentifier
+        if (this.opponentId !== opponentId
             || this.isUserTurn
             || this.layout[squareIndex].symbol !== '') return
         this.doPlay({X, Y}, this.opponentSymbol)
         if (!this.gameIsBeingPlayed) return this.connection.close()
         this.isUserTurn = true
+      } else {
+        console.log('===============================')
+        console.log(data)
+        console.log('===============================')
       }
     },
     wsConnectionIsOpen () {
