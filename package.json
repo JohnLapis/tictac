@@ -2,17 +2,18 @@
   "name": "tictac",
   "version": "v1.0.0-beta",
   "scripts": {
-    "serve": "vue-cli-service serve",
+    "serve": "php artisan serve",
     "build": "webpack --mode production",
-    "test:unit": "vue-cli-service test:unit",
-    "lint": "vue-cli-service lint"
+    "test:unit": "vue-cli-service test:unit"
   },
   "dependencies": {
     "core-js": "^3.6.5",
     "vue": "^3.2.26",
-    "vue-grid-layout": "^3.0.0-beta1"
+    "vue-grid-layout": "^3.0.0-beta1",
+    "vue-i18n": "^9.2.0-beta.26"
   },
   "devDependencies": {
+    "@intlify/vue-i18n-loader": "^4.1.0",
     "@vue/cli-plugin-babel": "~4.5.0",
     "@vue/cli-plugin-eslint": "~4.5.0",
     "@vue/cli-plugin-unit-jest": "~4.5.0",
@@ -21,12 +22,12 @@
     "@vue/eslint-config-standard": "^5.1.2",
     "@vue/test-utils": "^2.0.0-0",
     "babel-eslint": "^10.1.0",
-    "eslint": "^8.6.0",
-    "eslint-plugin-import": "^2.20.2",
+    "eslint": "^6.8.0",
+    "eslint-plugin-import": "^2.25.4",
     "eslint-plugin-node": "^11.1.0",
-    "eslint-plugin-promise": "^4.2.1",
-    "eslint-plugin-standard": "^4.0.0",
-    "eslint-plugin-vue": "^7.0.0",
+    "eslint-plugin-promise": "^6.0.0",
+    "eslint-plugin-standard": "^5.0.0",
+    "eslint-plugin-vue": "^7.20.0",
     "jest": "^26.6.3",
     "jest-cli": "^26.6.3",
     "vue-jest": "^5.0.0-0",

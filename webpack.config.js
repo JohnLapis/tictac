@@ -21,10 +21,23 @@ module.exports = {
       },
       {
         test: /\.css$/,
+        exclude: /node_modules/,
         use: [
           'vue-style-loader',
           'css-loader'
         ]
+      },
+      {
+        test: /\.(json5?|ya?ml)$/,
+        type: 'javascript/auto',
+        exclude: /node_modules/,
+        loader: '@intlify/vue-i18n-loader'
+      },
+      {
+        resourceQuery: /blockType=i18n/,
+        type: 'javascript/auto',
+        exclude: /node_modules/,
+        loader: '@intlify/vue-i18n-loader'
       },
     ],
   },

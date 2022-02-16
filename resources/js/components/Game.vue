@@ -1,52 +1,76 @@
+<i18n lang="yaml">
+pt:
+  userSymbol: "Seu símbolo:"
+  machineSymbol: "Símbolo da máquina:"
+  gridDimension: "Dimensão do jogo:"
+  startGame: "Começar novo jogo"
+  userWins: "Você ganhou!"
+  machineWins: "A máquina ganhou!"
+  gameIsDrawn: "Velha!"
+en:
+  userSymbol: "Your symbol:"
+  machineSymbol: "Machine's symbol:"
+  gridDimension: "Grid dimension:"
+  startGame: "Start new game"
+  userWins: "You won!"
+  machineWins: "The machine won!"
+  gameIsDrawn: "Draw!"
+</i18n>
+
 <template>
   <div class="container" :style="{color: 'white', fontWeight: 'bold'}">
     <div class="row">
       <div class="col-4">
-        Enter your symbol:
-        <input maxlength="1" v-model="userSymbol" :style="{width: '20px'}">
+        {{ $t('userSymbol') }}
+        <input maxlength="1"
+               v-model="userSymbol"
+               @keydown="$event.target.value = ''"
+               :style="{width: '20px'}">
       </div>
       <div class="col-4">
-        Enter machine's symbol:
-        <input maxlength="1" v-model="machineSymbol" :style="{width: '20px'}">
+        {{ $t('machineSymbol') }}
+        <input maxlength="1"
+               v-model="machineSymbol"
+               @keydown="$event.target.value = ''"
+               :style="{width: '20px'}">
       </div>
       <div class="col-4">
-        Grid dimension:
+        {{ $t('gridDimension') }}
         <input
           v-model.number="gridDimension"
-          v-on:keydown="isNavOrInt($event)"
-          :style="{width: '40px'}"
-        >
+          @keydown="isIntegerKey($event)"
+          :style="{width: '40px'}">
       </div>
     </div>
   </div>
   <button class="btn btn-light"
-    :style="{margin: '0.5rem 0 -1.25rem 0'}"
-    v-on:click="gameStarted"
-  >Start game</button>
+          @click="gameStarted"
+          :style="{margin: '0.5rem 0 -1.25rem 0'}">
+      {{ $t('startGame') }}
+  </button>
   <grid-layout v-model:layout="layout"
-    :style="{width: `${gridDimension <= 8 ? 10 * gridDimension : 80}%`}"
-    :col-num="2 * gridDimension"
-    :row-Height="50"
-    :is-draggable="false"
-    :is-resizable="false"
-  >
+               :col-num="2 * gridDimension"
+               :style="{width: `${Math.min(lgGridLength, maxGridLength)}px`}"
+               :row-height="lgGridLength <= maxGridLength ?
+               50 : Math.ceil((maxGridLength - 10) / (2 * gridDimension)) - 15"
+               :is-draggable="false"
+               :is-resizable="false">
     <grid-item v-for="square in layout"
-      v-on:click="clickListener(square)"
-      :style="square.style"
-      :x="square.x"
-      :y="square.y"
-      :w="square.w"
-      :h="square.h"
-      :i="square.i"
-      :key="square.i"
-    >
+               @click="clickListener(square)"
+               :style="square.style"
+               :x="square.x"
+               :y="square.y"
+               :w="square.w"
+               :h="square.h"
+               :i="square.i"
+               :key="square.i">
       <span class="symbol">{{square.symbol}}</span>
     </grid-item>
   </grid-layout>
 </template>
 
 <script>
-import { GridLayout, GridItem } from 'vue-grid-layout'
+const { GridLayout, GridItem } = () => import('vue-grid-layout')
 import { getLine } from '../utils'
 
 function randint (ending) {
@@ -73,6 +97,24 @@ function makeLayout (gridDimension, squareSize) {
   }))).flat()
 }
 
+function _getMaxGridLength () {
+  // The margins were obtained from the available lengths to the grid, taking into
+  // account the navbar, buttons, and etc.
+  const horizontalMargin = 14
+  const verticalMargin = window.innerWidth <= 768 ? 215 : 125
+  return Math.min(
+    window.innerWidth - horizontalMargin,
+    window.innerHeight - verticalMargin
+  )
+}
+
+async function getMaxGridLength () {
+  // For some reason, on android, window.innerWidth changes without any resizing
+  // of the screen when changing gridDimension. This delay prevents the bug.
+  await new Promise(() => setTimeout(() => {}, 1))
+  return _getMaxGridLength()
+}
+
 export default {
   components: {
     GridLayout,
@@ -92,9 +134,10 @@ export default {
         this.gameIsBeingPlayed = false
       }
     },
-    gridDimension (value) {
+    async gridDimension (value) {
       value = Number(value)
       if (isNaN(value) || value < 0 || value > 20) return
+
       this.numberOfRemainingSquares = value ** 2
       this.getLine = (...args) => getLine(value, value, ...args)
       this.layout = makeLayout(value, this.squareSize)
@@ -102,6 +145,9 @@ export default {
         this.resetGrid()
         this.gameIsBeingPlayed = false
       }
+
+      this.lgGridLength = 110 * value + 10 * (value + 1)
+      this.maxGridLength = await getMaxGridLength()
     }
   },
   data () {
@@ -115,7 +161,9 @@ export default {
       squareSize,
       numberOfRemainingSquares: gridDimension ** 2,
       getLine: (...args) => getLine(gridDimension, gridDimension, ...args),
-      layout: makeLayout(gridDimension, squareSize)
+      layout: makeLayout(gridDimension, squareSize),
+      lgGridLength: 110 * gridDimension + 10 * (gridDimension + 1),
+      maxGridLength: _getMaxGridLength(),
     }
   },
   methods: {
@@ -129,17 +177,11 @@ export default {
 
       this.doMachinePlay()
       line = this.getLine(this.layout, this.machineSymbol)
-      if (line) this.gameEnded(line, this.machineSymbol)
-      if (!this.numberOfRemainingSquares) return this.gameEnded()
-    },
-    updateSquare (chosenPos, chosenSymbol) {
-      const index = this.layout.findIndex(
-        ({ X, Y }) => X === chosenPos.X && Y === chosenPos.Y
-      )
-      this.layout[index].symbol = chosenSymbol
+      if (line) return this.gameEnded(line, this.machineSymbol)
+      if (!this.numberOfRemainingSquares) this.gameEnded()
     },
     doUserPlay ({ X, Y }) {
-      this.updateSquare({ X, Y }, this.userSymbol)
+      this.layout[X + Y * this.gridDimension].symbol = this.userSymbol
       this.numberOfRemainingSquares -= 1
     },
     doMachinePlay () {
@@ -147,7 +189,8 @@ export default {
       do {
         randomSquare = this.layout[randint(this.layout.length)]
       } while (randomSquare.symbol !== '')
-      this.updateSquare({ X: randomSquare.X, Y: randomSquare.Y }, this.machineSymbol)
+      const {X, Y} = randomSquare
+      this.layout[X + Y * this.gridDimension].symbol = this.machineSymbol
       this.numberOfRemainingSquares -= 1
     },
     resetGrid () {
@@ -170,33 +213,21 @@ export default {
     gameEnded (line, symbol) {
       this.gameIsBeingPlayed = false
       if (line) {
-        alert(symbol === this.userSymbol ? 'voce ganhou' : 'a maquina ganhou')
+        alert(this.$t(symbol === this.userSymbol ? 'userWins' : 'machineWins'))
         for (const square of line) {
           square.style.background = '#c4faf8'
         }
       } else {
-        alert('velha')
+        alert(this.$t('gameIsDrawn'))
         for (const square of this.layout) {
           square.style.background = '#ff9999'
         }
       }
     },
-    isNavOrInt (event) {
-      // Only allows navigation and numeric inputs
-      const allowedKeys = [
-        'ArrowLeft',
-        'ArrowRight',
-        'ArrowUp',
-        'ArrowDown',
-        'Delete',
-        'Backspace',
-        'PageUp',
-        'PageDown',
-        'Home',
-        'End'
-      ]
-      if (!allowedKeys.includes(event.key) && isNaN(event.key)) event.preventDefault()
-    }
+    isIntegerKey (event) {
+      if (['ctrlKey', 'altKey', 'metaKey'].includes(event.key)) return
+      if (event.key.length === 1 && isNaN(event.key)) event.preventDefault()
+    },
   }
 }
 </script>
@@ -205,20 +236,15 @@ export default {
 .vue-grid-layout {
   background: #000;
   flex: 0 0 auto;
-  margin: 1.5rem auto;
-  clip-path: inset(15px 15px 15px 15px)
-}
-@media only screen and (max-width: 768px) {
-  .vue-grid-layout {
-    width: 100% !important;
-  }
+  margin: 1.5rem auto 0;
+  clip-path: inset(15px 15px 15px 15px);
 }
 .vue-grid-item:not(.vue-grid-placeholder) {
   background: #fff;
-  width: 50px;
   display: flex;
   align-items: center;
   text-align: center;
+  touch-action: auto;
 }
 .vue-grid-item .symbol {
   width: 100%;
